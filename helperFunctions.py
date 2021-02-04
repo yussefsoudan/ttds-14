@@ -8,7 +8,7 @@ def getBookMetadata(ISBN, title, author):
     # Remove space, dashes or colons from isbn
     ISBN = ISBN.translate({ord(i): None for i in ' -:'}) 
     metadata = {'title' : title, 
-        'authors' : author, 
+        'authors' : [author], 
         'isbn-10' : '', 
         'isbn-13' : '',
         'categories' : [], 
