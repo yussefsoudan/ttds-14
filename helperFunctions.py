@@ -19,6 +19,8 @@ def getBookMetadata(ISBN, title, author):
         'averageRating' : ''}
 
     endpoint = URL + ISBN
+    accepted_cats = set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
+                     'philosophy','young adult nonfiction','true crime','indic fiction (english)'])
     
     # Account for occasional failure of get request even though the book might exist
     for i in range(3):
@@ -49,11 +51,13 @@ def getBookMetadata(ISBN, title, author):
                 try:
                     isbn10 = data['items'][j]['volumeInfo']['industryIdentifiers'][0]['identifier']
                 except:
-                    #print("No registered ISBN-10 found!")
+                    # print("No registered ISBN-10 found!")
+                    pass
                 try:
                     isbn13 = data['items'][j]['volumeInfo']['industryIdentifiers'][1]['identifier']    
                 except:
                     #print("No registered ISBN-13 found!")  
+                    pass
 
                 if (ISBN == isbn10 or ISBN == isbn13):
                     item_idx = j
@@ -70,6 +74,7 @@ def getBookMetadata(ISBN, title, author):
                 metadata['authors'] = authors
             except:
                 #print("No authors found!") 
+                pass
                
             # Categories tag might not exist
             try:
@@ -77,6 +82,7 @@ def getBookMetadata(ISBN, title, author):
                 metadata['categories'] = categories
             except:
                 #print("No categories found!")
+                pass
             
             # Published date might not exist
             try:
@@ -84,6 +90,7 @@ def getBookMetadata(ISBN, title, author):
                 metadata['publishedDate'] = publishedDate
             except:
                 #print("No published date found!")
+                pass
 
             # Thumbnail might not exist
             try:
@@ -91,6 +98,7 @@ def getBookMetadata(ISBN, title, author):
                 metadata['thumbnail'] = thumbnail
             except:
                 #print("No thumbnail found!")
+                pass
 
             # Preview link might not exist
             try: 
@@ -98,6 +106,7 @@ def getBookMetadata(ISBN, title, author):
                 metadata['previewLink'] = previewLink
             except:
                 #print("No preview link found!")
+                pass
 
             # Pagecount might not exist 
             try: 
@@ -105,6 +114,7 @@ def getBookMetadata(ISBN, title, author):
                 metadata['pageCount'] = pageCount
             except:
                 #print("No pageCount found")
+                pass
 
             # Rating might not exist
             try:
@@ -112,12 +122,18 @@ def getBookMetadata(ISBN, title, author):
                 metadata['averageRating'] = averageRating
             except:
                 #print("No rating found")
+                pass
 
             break
         else:
             print("No match for given ISBN!")
     
-    if metadata['isbn-10'] == '' and metadata['isbn-13'] == '':
+
+    # lowercase the categories to match the accepted_cat set
+    book_cat = set([cat.lower() for cat in metadata['categories'] ])
+    
+    # If no matching isbn or no common elements between the 2 category sets, then the book is rejected
+    if metadata['isbn-10'] == '' and metadata['isbn-13'] == '' or not (book_cat & accepted_cats):
         return False
     else:
         return metadata
