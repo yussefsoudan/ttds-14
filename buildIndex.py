@@ -53,9 +53,11 @@ for q in quotes:
                         if quote2['_id'] == q['_id']:
                             quoteFound = True
                             updated['books'][i]['quotes'][j]['pos'].append(pos)
+                            break
                     # Term appeared in a new quote in this book
                     if (quoteFound == False):
                         updated['books'][i]['quotes'].append({'_id' : q['_id'], 'len' : len(terms), 'pos' : [pos]})
+                    break
             # First time term occurs in this book
             if (bookFound == False):
                 updated['books'].append({
