@@ -16,7 +16,7 @@ def buildCollections():
     db = client["TTDS"]
     booksCollec = db["books"]
     quotesCollec = db["quotes"]
-    booksWithFaultyISBN = 0
+    booksWithFaultyISBNOrCateg = 0
 
     directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3"
     folders = ['7', 'X', 'Y', 'Z']
@@ -33,9 +33,9 @@ def buildCollections():
                 ISBN = findISBN(text) # Books without ISBN have already been removed
                 bookMetadata = getBookMetadata(ISBN, title, author)
 
-                # The ISBN does NOT match the Google ISBNs, remove book.
+                # The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
                 if bookMetadata == False:
-                    booksWithFaultyISBN += 1
+                    booksWithFaultyISBNOrCateg += 1
                     os.remove(filepath)
                     continue 
 
@@ -49,7 +49,7 @@ def buildCollections():
                     quoteDoc = {"book_id" : x.inserted_id, "quote" : quote}
                     quotesCollec.insert_one(quoteDoc)
 
-    print("Books removed for having a faulty ISBN: " + str(booksWithFaultyISBN))
+    print("Books removed for having a faulty ISBN or category: " + str(booksWithFaultyISBNOrCateg))
     client.close()
 
 def getQuotes(text):
