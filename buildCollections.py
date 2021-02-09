@@ -10,6 +10,7 @@ import nltk
 from helperFunctions import findISBN 
 from nltk import sent_tokenize
 from helperFunctions import getBookMetadata
+from tqdm import tqdm # progress bar 
 
 def buildCollections():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -18,14 +19,16 @@ def buildCollections():
     quotesCollec = db["quotes"]
     booksWithFaultyISBNOrCateg = 0
 
-    directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3"
-    folders = ['7', 'X', 'Y', 'Z']
+    # directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3"
+    directory = r"C:/Users/Erodotos/Desktop/Year 4/TTDS/group-project/Book3"
+    # folders = ['7', 'X', 'Y', 'Z']
+    folders = ['X','7']
     for folder in folders:
         subdir = directory + '/' + folder
-        for filename in os.listdir(subdir):
+        for filename in tqdm(os.listdir(subdir)):
             if filename.endswith(".txt"):
                 filepath = subdir + '/' + filename
-                text = open(filepath).read()
+                text = open(filepath,"r",encoding='utf-8').read()
 
                 authorIncluded = True if "-" in filename else False
                 title = filename if not authorIncluded else filename.split("-")[0].strip()
@@ -55,11 +58,22 @@ def buildCollections():
 def getQuotes(text):
     quotes = []
     paragraphs = text.split("\n\n") 
-    bad_chars = ['#','<','>','*','_',':','\n']
+    bad_chars = ['#','<','>','*','_',':','\n','@']
+    bad_words = ['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by',
+                'publisher','manuscript','editor','coincidental','reproduce','special thank'] 
+    
+    #Possible addition: author name + book name? During Author section, those might be mentioned
 
-    # A quote is a paragraph with at least 10 chars and no 'bad' characters. 
+
+    # A quote is a paragraph with at least 10 words that doesnt include bad chars/words or thank you multiple times 
     for par in paragraphs:
-        if len(re.findall('\w+', par)) >=10 and not any (char in par for char in bad_chars):
+        found_bad_chars = any (char in par for char in bad_chars)
+        found_bad_words = any (word in par.lower() for word in bad_words)
+        
+        # Usually if thank you/thanks appears more than 2-3 times, itis an Acknowledgement section
+        thank_you_count = par.lower().count('thank') 
+        
+        if len(re.findall('\w+', par)) >=10 and not found_bad_chars and not found_bad_words and thank_you_count<3:
             quotes.append(par)
     return quotes
 

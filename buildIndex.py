@@ -5,6 +5,7 @@ nltk.download('stopwords')
 from nltk.stem import *
 from nltk.stem.porter import *
 import re
+from tqdm import tqdm
 
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
@@ -16,7 +17,7 @@ inverted_index = db["inverted_index"]
 
 quotes = quotesCollec.find({})
 index = 0
-for q in quotes:
+for q in tqdm(quotes):
     doc = {}
     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', q['quote']) if not token.lower() in stopSet]
     for pos, term in enumerate(terms):
