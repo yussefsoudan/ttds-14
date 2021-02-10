@@ -20,9 +20,9 @@ def buildCollections():
     booksWithFaultyISBNOrCateg = 0
 
     # directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3"
-    directory = r"C:/Users/Erodotos/Desktop/Year 4/TTDS/group-project/Book3"
+    directory = r"/Users/humuyao/Downloads/Book3"
     # folders = ['7', 'X', 'Y', 'Z']
-    folders = ['X','7']
+    folders = ['Y', 'Z']
     for folder in folders:
         subdir = directory + '/' + folder
         for filename in tqdm(os.listdir(subdir)):
