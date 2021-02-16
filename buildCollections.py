@@ -2,7 +2,7 @@
 # AFTER deleting the books that require deletion
 # RUN this script to make the books and quotes collections
 ##################################################################
-
+import time
 import pymongo 
 import os 
 import re
@@ -18,6 +18,11 @@ from nltk.stem.porter import *
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 
+bad_chars = set(['#','<','>','*','_',':','\n','@'])
+bad_words = set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by',
+            'publisher','manuscript','editor','coincidental','reproduce','special thank'])
+#Possible addition: author name + book name? During Author section, those might be mentioned
+
 def buildCollections():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client["TTDS"]
@@ -29,7 +34,7 @@ def buildCollections():
     bookID = 0
     quoteID = 0
 
-    directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3"
+    directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3/playground"
     #directory = r"C:/Users/Erodotos/Desktop/Year 4/TTDS/group-project/Book3"
     folders = ['7', 'X', 'Y', 'Z']
 
@@ -37,6 +42,9 @@ def buildCollections():
         subdir = directory + '/' + folder
         for filename in tqdm(os.listdir(subdir)):
             if filename.endswith(".txt"):
+                startTime = time.time()
+                print("Started in book " + str(bookID))
+
                 filepath = subdir + '/' + filename
                 text = open(filepath, "r", encoding='utf-8').read()
 
@@ -52,27 +60,32 @@ def buildCollections():
                     os.remove(filepath)
                     continue 
 
-                quotes = getQuotes(text)
-
                 # Insert book
                 bookMetadata["_id"] = "b" + str(bookID)
                 bookID += 1
                 b = booksCollec.insert_one(bookMetadata)
+                
+                quotes = getQuotes(text)
 
-                # Insert paragraph
+                
                 for quote in quotes:
-                    indexDoc = {}
+
+                    # Insert paragraph
                     quoteDoc = {"book_id" : b.inserted_id, "quote" : quote}
                     quoteDoc["_id"] = "q" + str(quoteID)
                     quoteID += 1
                     q = quotesCollec.insert_one(quoteDoc)
-                    
+
                     # Insert inverted index entry 
+                    indexDoc = {}
                     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', quote) if not token.lower() in stopSet]
+
                     for pos, term in enumerate(terms):
+                        
                         query = inverted_index.find({'term' : term})
+                        
                         # Unique term
-                        if inverted_index.count_documents({'term' : term}) == 0: 
+                        if query.count() == 0: 
                             indexDoc['_id'] = index
                             index += 1
                             indexDoc['term'] = term 
@@ -90,6 +103,7 @@ def buildCollections():
                             # Make the multi-layer indices on the inverted_index collection
                             if index == 1:
                                 inverted_index.create_index([("term", pymongo.ASCENDING)])
+                            continue
                         # Term already exists
                         else:
                             # Each term should have one entry (for now)
@@ -115,26 +129,31 @@ def buildCollections():
                                             q.inserted_id : {'len' : len(terms), 'pos' : [pos]}
                                         }
                                     }
-                                
+                            
                             inverted_index.update_one({'term' : term}, {"$set" : updated})
 
-
+                bookTime = time.time() - startTime
+                print("Finished book " + str(bookID) + " in " + str(bookTime))
     print("Books removed for having a faulty ISBN or category: " + str(booksWithFaultyISBNOrCateg))
     client.close()
 
 def getQuotes(text):
     quotes = []
     paragraphs = text.split("\n\n") 
-    bad_chars = ['#','<','>','*','_',':','\n','@']
-    bad_words = ['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by',
-                'publisher','manuscript','editor','coincidental','reproduce','special thank'] 
-    
-    #Possible addition: author name + book name? During Author section, those might be mentioned
 
     # A quote is a paragraph with at least 10 words that doesnt include bad chars/words or thank you multiple times 
     for par in paragraphs:
-        found_bad_chars = any (char in par for char in bad_chars)
-        found_bad_words = any (word in par.lower() for word in bad_words)
+        found_bad_chars = False 
+        found_bad_words = False
+        
+        for char in par:
+            if char in bad_chars:
+                found_bad_chars = True
+                break 
+        for word in par.lower():
+            if word in bad_words:
+                found_bad_words = True 
+                break
         
         # Usually if thank you/thanks appears more than 2-3 times, itis an Acknowledgement section
         thank_you_count = par.lower().count('thank') 
