@@ -27,13 +27,11 @@ for q in tqdm(quotes):
     doc = {}
     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', q['quote']) if not token.lower() in stopSet]
     for pos, term in enumerate(terms):
-        query = inverted_index.find({'term' : term})
+        query = inverted_index.find({'_id' : term})
         
         # Unique term
-        if inverted_index.count_documents({'term' : term}) == 0: 
-            doc['_id'] = index
-            index += 1
-            doc['term'] = term 
+        if inverted_index.count_documents({'_id' : term}) == 0: 
+            doc['_id'] = term
             doc['term_freq'] = 1 # num of times term occurs across all quotes
             doc['books'] = {
                 b_id : { 
@@ -45,31 +43,31 @@ for q in tqdm(quotes):
             }
             inverted_index.insert_one(doc)
 
-            if index == 1:
-                inverted_index.create_index([("term", pymongo.ASCENDING)])
+            # if index == 1:
+            #     inverted_index.create_index([("term", pymongo.ASCENDING)])
         # Term already exists
         else:
             # Each term should have one entry (for now)
             updated = query[0]
             val = updated['term_freq'] + 1
-            inverted_index.update_one({'term' : term}, {"$set" : { 'term_freq': val}}, upsert=False)
+            inverted_index.update_one({'_id' : term}, {"$set" : { 'term_freq': val}}, upsert=False)
 
             # Term already occured in this book
             if b_id in updated['books'].keys():
                 key = 'books.' + b_id + '.term_freq_in_book'
                 val = updated['books'][b_id]['term_freq_in_book'] + 1
-                inverted_index.update_one({'term' : term}, {"$set" : { key: val}}, upsert=False)
+                inverted_index.update_one({'_id' : term}, {"$set" : { key: val}}, upsert=False)
 
                 # Term already occured in this particular quote
                 if q_id in updated['books'][b_id]['quotes'].keys():
                     key = 'books.' + b_id + '.quotes.' + q_id + '.' + 'pos'
-                    inverted_index.update_one({'term' : term}, {"$push" : { key: pos}}, upsert=False)
+                    inverted_index.update_one({'_id' : term}, {"$push" : { key: pos}}, upsert=False)
                     
                 # Term appeared in a new quote in this book
                 else:  
                     key = 'books.' + b_id + '.quotes.' + q_id
                     obj = {'_id' : q_id, 'len' : len(terms), 'pos' : [pos]}
-                    inverted_index.update_one({'term' : term}, {"$set" : { key: obj}}, upsert=False)
+                    inverted_index.update_one({'_id' : term}, {"$set" : { key: obj}}, upsert=False)
             # First time term occurs in this book
             else:
                 obj = {
@@ -79,9 +77,6 @@ for q in tqdm(quotes):
                         }
                     }
                 key = 'books.' + b_id
-                inverted_index.update_one({'term' : term}, {"$set" : { key : obj}}, upsert=False)
-
-
-# inverted_index.create_index([("books._id", pymongo.ASCENDING)])    
-# inverted_index.create_index([("books.quotes._id", pymongo.ASCENDING)])       
+                inverted_index.update_one({'_id' : term}, {"$set" : { key : obj}}, upsert=False)
+     
 client.close()
