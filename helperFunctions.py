@@ -20,7 +20,7 @@ def getBookMetadata(ISBN, title, author):
 
     endpoint = URL + ISBN
     accepted_cats = set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
-                     'philosophy','young adult nonfiction','true crime','indic fiction (english)', 'poetry'])
+                     'philosophy','young adult nonfiction','true crime','indic fiction (english)'])
     
     # Account for occasional failure of get request even though the book might exist
     for i in range(3):
