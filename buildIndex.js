@@ -4,7 +4,7 @@ const url = "mongodb://localhost";
 const stemmer = require('porter-stemmer').stemmer;
 
 let buildIndex = async () => {
-    let text = await fs.readFile('./nltk_stop_words.txt', 'utf8'); 
+    let text = await fs.readFile('englishST.txt', 'utf8'); 
     let stopWords = new Set(text.split("\n"));
     let client = await MongoClient.connect(url);
     try {

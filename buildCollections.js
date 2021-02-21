@@ -1,18 +1,21 @@
 const fetch = require("node-fetch");
 const fs = require('fs');
 const badChars = new Set(['#','<','>','*','_',':','\n','@']);
-const badWords = new Set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by','publisher','manuscript','editor','coincidental','reproduce','special thank']);
+const badWords = new Set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by','publisher','manuscript','editor','coincidental','reproduce','special thank', 'inc.']);
+const introductoryWords = new Set([/^(^|[^a-z0-9]*)introduction($|[^a-z0-9]*)$/gm, /(^|[^a-z0-9]*)preface($|[^a-z0-9]*)$/gm, /(^|[^a-z0-9]*)prologue($|[^a-z0-9]*)$/gm, /(chapter|part|^)[^a-z0-9]*1([^a-z0-9]*|$)$/gm, /(chapter|part|^)[^a-z0-9]*one([^a-z0-9]*|$)$/gm, /(chapter|part|^)([^a-z0-9]*|^)i([^a-z0-9]*|$)$/, /^([^a-z0-9]*)(1\.( )?)[a-z]*([^0-9]*|$)$/gm]);
 const MongoClient = require('mongodb').MongoClient;
-const url = "mongodb://localhost";
+// const url = "mongodb://localhost";
+const url = "mongodb://localhost:27017";
 
 let buildCollections = () => {
     let bookID = 0;
     let quoteID = 0;
-    let directory = "/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3/playground";
+    let directory = "/Users/humuyao/Downloads/Book3";
     let folders = ['7'];
     let booksDeleted = 0;
 
     MongoClient.connect(url, function(err, client) {
+        if (err) console.error("connection error. ", err);
         let booksCollec = client.db("TTDS").collection("books");
         let quotesCollec = client.db("TTDS").collection("quotes");
 
@@ -22,6 +25,7 @@ let buildCollections = () => {
                 if (err) console.error("Could not list the directory.", err);
 
                 files.forEach(function (filename, index) { 
+                    console.log("book: " + filename)
                     let filePath = subdir + '/' + filename; 
                     let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
                     let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
@@ -39,6 +43,7 @@ let buildCollections = () => {
                         if (bookMetadata != false && bookMetadata != undefined) {
                             // Insert book
                             bookMetadata["_id"] = "b" + bookID;
+                            console.log("bookMetadata (inserted into book collection): " + JSON.stringify(bookMetadata))
                             bookID += 1;
                             booksCollec.insertOne(bookMetadata, function(err, res) {
                                 if (err) console.log("Error inserting book: ", err);
@@ -50,6 +55,7 @@ let buildCollections = () => {
                                 let quote = quotes[q];
                                 quoteDoc = {"book_id" : ("b" + bookID), "quote" : quote};
                                 quoteDoc["_id"] = "q" + quoteID;
+                                // console.log("quoteDoc (inserted into quote collection): " + JSON.stringify(quoteDoc))
                                 quoteID += 1;
                                 quotesCollec.insertOne(quoteDoc, function(err, res) {
                                     if (err) console.log("Error inserting quote: ", err);
@@ -67,9 +73,10 @@ let buildCollections = () => {
                             //     // file removed
                             // });
                             booksDeleted += 1;
-                            console.log(booksDeleted)
+                            console.log("books deleted: " + booksDeleted)
                         }
                     }); 
+                    console.log()
                 });
             });
         }
@@ -232,9 +239,161 @@ let findISBN = (text) => {
     return false;
 };
 
+let removeUntilIntroduction = (text) => {
+    let textByLines = text.split("\n");
+    let lineCount = 0;
+    let beginWordsDict = {};
+
+    for (i in textByLines) {
+        line = textByLines[i];
+        if (line) {
+            lineCount += 1;
+            // line = line.map(x => toLowerCase(x));
+            // console.log("line considered is: " + line);
+        } else {
+            continue;
+        }
+
+        if (lineCount >= 200) {
+            break;
+        }
+
+        for (let word of introductoryWords) {
+            // console.log("finding word: " + word);
+
+            let search = line.match(word) || [];
+            // console.log("search is: " + search);
+            if (search.length > 0) {
+                let rawMatch = search[0];
+                
+                // [^\w\s] is anything that's not a digit, letter, whitespace, or underscore.
+                // [^\w\s]|_ is the same as ^ except including underscores.
+                let match = rawMatch.replace(/[^\w\s]|_/g,"").toLowerCase().trim();
+
+                // console.log("matching introductory word is: " + match);
+
+                if (match in beginWordsDict) {
+                    beginWordsDict[match].push(parseInt(i));
+                } else {
+                    beginWordsDict[match] = [parseInt(i)];
+                }
+                
+                break;
+            }
+        }
+    }
+
+    console.log("beginWordsDict: " + JSON.stringify(beginWordsDict));
+
+    // find a line number to read from
+    let readFrom = 0;
+
+    // if only one introductory word has appeared, start reading from that line
+    if (Object.keys(beginWordsDict).length == 1) {
+        let key = Object.keys(beginWordsDict)[0];
+        // console.log("key is: " + key)
+        // console.log("list being fed: " + beginWordsDict[key])
+        readFrom = Math.max(...beginWordsDict[key]);
+    } 
+    // more than one introductory word has appeared
+    else if (Object.keys(beginWordsDict).length > 1) {
+        // all values (of key-value pairs) of the dictionary are single elem lists
+        // i.e. multiple introductory words have appeared, but they all appear only once
+        let allSingle = true;
+        
+        // all values (of key-value pairs) of the dictionary are multiple elem lists
+        // i.e. multiple introductory words have appeared, but they all appear multiple times (usually twice)
+        let allMulti = true;
+
+        for (key in beginWordsDict) {
+            if (beginWordsDict[key].length == 1) {
+                allMulti = false;
+            }  
+            if (beginWordsDict[key].length > 1) {
+                allSingle = false;
+            }   
+        }
+
+        // this means there are keys with single elem lists AND ALSO keys with multiple elem lists
+        // i.e. some introductory words appear once, some appeared more than once
+        if (!allSingle && !allMulti) {
+            for (key in beginWordsDict) {
+                // only considering lists with 2 elements
+
+                if (beginWordsDict[key].length == 2) {
+                    // idea: start reading from the latest appearance of the earlier introductory word
+                    // e.g. 
+                    
+                    // Contents Page
+                    // -------------
+                    // INTRODUCTION
+                    // Chapter 1
+                    // _____________
+                    
+                    // - actual book
+                    // INTRODUCTION (start reading from here)
+
+                    if (readFrom == 0) {
+                        readFrom = Math.max(...beginWordsDict[key]);
+                    } else {
+                        readFrom = Math.min(...[Math.max(...beginWordsDict[key]), readFrom]);
+                    }
+                }
+
+            }
+        } 
+
+        // all keys in dictionary have one elem lists
+        else if (allSingle) {
+            // idea: read the latest appearing introductory word
+            // e.g.
+                
+            // Preface
+            // Introduction
+            // Chapter 1 (start reading from here)
+
+            console.log("all keys in dictionary have one elem lists!");
+            helper = []
+            for (key in beginWordsDict) {
+                helper.push(beginWordsDict[key]);
+            }
+            console.log("helper: " + helper);
+            readFrom = Math.max(...helper);
+        } 
+
+        // all keys in dictionary have multiple elem lists
+        else if (allMulti) {
+            // idea: start reading from the latest appearance of the earlier introductory word
+            // e.g. 
+            
+            // Contents Page
+            // -------------
+            //  INTRODUCTION
+            //  Chapter 1
+            //  _____________
+
+            //  - actual book
+            //  INTRODUCTION (start reading from here)
+            //  Chapter 1
+
+            helper = [];
+            for (key in beginWordsDict) {
+                helper.push(Math.max(...beginWordsDict[key]));
+            }
+            readFrom = Math.min(...helper);
+        }  
+    }   
+
+    console.log("readFrom: " + readFrom);
+    let newTextArray = textByLines.slice(readFrom);
+    let newText = newTextArray.join("\n");
+    return newText;
+}
+
 let getQuotes = (text) => {
     let quotes = [];
-    let paragraphs = text.split("\n\n");
+    let newText = removeUntilIntroduction(text)
+    let paragraphs = newText.split("\n\n");
     // A quote is a paragraph with at least 10 words that doesnt include bad chars/words or thank you multiple times 
     for (i in paragraphs) {
         let par = paragraphs[i];
@@ -248,11 +407,22 @@ let getQuotes = (text) => {
                 break;
             }
         }
+        
+        // let words = par.split().map(x => x.toLowerCase());
+        // for (w in words) {
+        //     let word = words[w];
+        //     if (badWords.has(word)) {
+        //         foundBadWord = true;
+        //         break;
+        //     }
+        // }
 
-        let words = par.split().map(x => x.toLowerCase());
-        for (w in words) {
-            let word = words[w];
-            if (badWords.has(word)) {
+        for (let badWord of badWords) {
+            // let badWord = badWords[w];
+            if (par.toLowerCase().includes(badWord)) {
+                // console.log("par which has badWord is: " + par)
+                // console.log("badWord is: " + badWord)
+                console.log()
                 foundBadWord = true;
                 break;
             }
@@ -268,6 +438,7 @@ let getQuotes = (text) => {
 
     return quotes;
 }
+
 
 
 buildCollections()
