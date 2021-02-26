@@ -10,6 +10,7 @@ let buildIndex = async () => {
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let invertedIndex = client.db("TTDS").collection("invertedIndex");
+        let index = 0;
 
         let results = await quotesCollec.find({}).toArray();
         for (i in results) {
@@ -20,63 +21,72 @@ let buildIndex = async () => {
             for (pos in terms) {
                 let term = terms[pos];
                 let doc = {};
-                let queryResult = await invertedIndex.find({'_id' : term}).toArray();
+                let queryResult = await invertedIndex.find({'term' : term}).toArray();
                 // Unique term
-                if (queryResult.length == 0) {
-                    doc['_id'] = term;
+                if (queryResult.length == 0 || queryResult[queryResult.length - 1]['term_freq'] > 200) { // 
+                    doc['_id'] = index;
+                    doc['term'] = term;
                     doc['term_freq'] = 1; // num of times term occurs across all quotes
-                    quote_obj = {'len' : terms.length, 'pos' : [pos] }
-                    book_obj = { 'term_freq_in_book': 1}
-                    doc['books'] = {};
-                    doc['books'][b_id] = book_obj;
-                    doc['books'][b_id]['quotes'] = {};
-                    doc['books'][b_id]['quotes'][q_id] = quote_obj;
+                    quote_obj = {'_id' : q_id, 'len' : terms.length, 'pos' : [pos] }
+                    book_obj = {'_id' : b_id, 'term_freq_in_book': 1, 'quotes' : []}
+                    doc['books'] = [];
+                    doc['books'].push(book_obj);
+                    doc['books'][0]['quotes'] = [];
+                    doc['books'][0]['quotes'].push(quote_obj);
 
-                    invertedIndex.insertOne(doc, async function(err, res) {
-                        if (err) console.log("Error inserting inverted index unique entry: ", err);
-                    });
+                    let res = await invertedIndex.insertOne(doc);
+                    index += 1;
+
+                    if (index == 1) {
+                        // Non-unique index!
+                        const resIndex = invertedIndex.createIndex({"term" : 1});
+                    }
                 } 
                 else { // Term already exists 
-                    // Each term should have one entry (for now)
-                    doc = queryResult[0];
-                    let val = doc['term_freq'] + 1;
-                    invertedIndex.updateOne({'_id' : term}, {$set : { 'term_freq': val}});
+                    // Update the last entry
+                    doc = queryResult[queryResult.length - 1];
+                    let docID = doc['_id']
+                    let val = doc['term_freq'] + 1; 
+                    invertedIndex.updateOne({'_id' : docID}, {$set : { 'term_freq': val}});
 
                     // Term already occured in this book
-                    if (Object.keys(doc['books']).indexOf(b_id) > -1) {
+                    let b_arr_id = idInArray(doc['books'], b_id);
+                    if (b_arr_id > -1) {
                         let obj = {};
-                        let key =  `books.${b_id}.term_freq_in_book`;
-                        let val = doc['books'][b_id]['term_freq_in_book'] + 1;
+                        let key = `books.${b_arr_id}.term_freq_in_book`;
+                        let val = doc['books'][b_arr_id]['term_freq_in_book'] + 1;
                         obj[key] = val;
-                        invertedIndex.updateOne({'_id' : term}, {$set : obj});
+                        invertedIndex.updateOne({'term' : term}, {$set : obj});
 
                         // Term already occured in this particular quote
-                        if (Object.keys(doc['books'][b_id]['quotes']).indexOf(q_id) > -1) {
+                        let q_arr_id = idInArray(doc['books'][b_arr_id]['quotes'], q_id)
+                        if (q_arr_id > -1) {
                             let obj = {};
-                            let key = `books.${b_id}.quotes.${q_id}.pos`;
+                            let key = `books.${b_arr_id}.quotes.${q_arr_id}.pos`;
                             obj[key] = pos;
-                            invertedIndex.updateOne({'_id' : term}, {$push : obj})
+                            invertedIndex.updateOne({'_id' : docID}, {$push : obj})
                         } // Term appeared in a new quote in this book
                         else {
                             let obj = {}
-                            let key = `books.${b_id}.quotes.${q_id}`;
-                            let val = {'len' : terms.length, 'pos' : [pos]};
+                            let key = `books.${b_arr_id}.quotes`;
+                            let val = {'_id' : q_id, 'len' : terms.length, 'pos' : [pos]};
                             obj[key] = val;
-                            invertedIndex.updateOne({'_id' : term}, {$set : obj});
+                            invertedIndex.updateOne({'_id' : docID}, {$push : obj});
                         }
                         
                     } // First time term occurs in this book
                     else {
                         let obj =  {};
-                        let key = `books.${b_id}`;
+                        let key = `books`;
                         let val = {
+                            '_id' : b_id,
                             'term_freq_in_book': 1, 
-                            'quotes' : {
-                                q_id : {'len' : terms.length, 'pos' : [pos]}
-                            }
+                            'quotes' : [
+                                {'_id': q_id, 'len' : terms.length, 'pos' : [pos]}
+                            ]
                         };
                         obj[key] = val;
-                        invertedIndex.updateOne({'_id' : term}, {$set : obj});
+                        invertedIndex.updateOne({'_id' : docID}, {$push : obj});
                     }
                 }
             }
@@ -98,6 +108,16 @@ let preprocess = async (quote, stopWords) => {
     return final;
 }
 
+let idInArray = (arr, id) => {
+    for(let i = 0; i < arr.length; i++) {
+        if (arr[i]['_id'] == id) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 let run = async () => {
     let start = new Date().getTime();
     await buildIndex();
@@ -106,3 +126,4 @@ let run = async () => {
 }
 
 run();
+
