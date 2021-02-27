@@ -13,66 +13,70 @@ let buildCollections = () => {
     let booksDeleted = 0;
 
     MongoClient.connect(url, function(err, client) {
-        let booksCollec = client.db("TTDS").collection("books");
-        let quotesCollec = client.db("TTDS").collection("quotes");
 
-        for (i in folders) {
-            let subdir = directory + '/' + folders[i] + '/';
-            fs.readdir(subdir, function (err, files) {
-                if (err) console.error("Could not list the directory.", err);
+        try {
+            let booksCollec = client.db("TTDS").collection("books");
+            let quotesCollec = client.db("TTDS").collection("quotes");
 
-                files.forEach(function (filename, index) { 
-                    let filePath = subdir + '/' + filename; 
-                    let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
-                    let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
-                    let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
-                    
-                    fs.readFile(filePath, 'utf8' , async function(err, text)  {
-                        if (err) console.error(err);
+            for (i in folders) {
+                let subdir = directory + '/' + folders[i] + '/';
+                fs.readdir(subdir, function (err, files) {
+                    if (err) console.error("Could not list the directory.", err);
+
+                    files.forEach(function (filename, index) { 
+                        let filePath = subdir + '/' + filename; 
+                        let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
+                        let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
+                        let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
                         
-                        let ISBN = findISBN(text); // Books without ISBN have already been removed
-                        let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
-                        if (bookMetadata == undefined) {
-                            console.log("API limit reached", ISBN);
-                        }
-
-                        if (bookMetadata != false && bookMetadata != undefined) {
-                            // Insert book
-                            bookMetadata["_id"] = "b" + bookID;
-                            bookID += 1;
-                            booksCollec.insertOne(bookMetadata, function(err, res) {
-                                if (err) console.log("Error inserting book: ", err);
-                            })
-
-                            // Insert quotes 
-                            let quotes = getQuotes(text);
-                            for (q in quotes) {
-                                let quote = quotes[q];
-                                quoteDoc = {"book_id" : ("b" + bookID), "quote" : quote};
-                                quoteDoc["_id"] = "q" + quoteID;
-                                quoteID += 1;
-                                quotesCollec.insertOne(quoteDoc, function(err, res) {
-                                    if (err) console.log("Error inserting quote: ", err);
-                                });
+                        fs.readFile(filePath, 'utf8' , async function(err, text)  {
+                            if (err) console.error(err);
+                            
+                            let ISBN = findISBN(text); // Books without ISBN have already been removed
+                            let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
+                            if (bookMetadata == undefined) {
+                                console.log("API limit reached", ISBN);
                             }
-                            
-                        } else {
-                            // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
-                            // fs.unlink(filePath, (err) => {
-                            //     if (err) {
-                            //       console.error(err)
-                            //       return
-                            //     }
-                            
-                            //     // file removed
-                            // });
-                            booksDeleted += 1;
-                            console.log(booksDeleted)
-                        }
-                    }); 
+
+                            if (bookMetadata != false && bookMetadata != undefined) {
+                                // Insert book
+                                bookMetadata["_id"] = bookID;
+                                bookID += 1;
+                                booksCollec.insertOne(bookMetadata, function(err, res) {
+                                    if (err) console.log("Error inserting book: ", err);
+                                })
+
+                                // Insert quotes 
+                                let quotes = getQuotes(text);
+                                for (q in quotes) {
+                                    let quote = quotes[q];
+                                    quoteDoc = {"book_id" : (bookID), "quote" : quote};
+                                    quoteDoc["_id"] = quoteID;
+                                    quoteID += 1;
+                                    quotesCollec.insertOne(quoteDoc, function(err, res) {
+                                        if (err) console.log("Error inserting quote: ", err);
+                                    });
+                                }
+                                
+                            } else {
+                                // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
+                                // fs.unlink(filePath, (err) => {
+                                //     if (err) {
+                                //       console.error(err)
+                                //       return
+                                //     }
+                                
+                                //     // file removed
+                                // });
+                            }
+                        }); 
+                    });
                 });
-            });
+            }
+        } finally {
+            console.log("Done");
         }
+        
     });
 
 };

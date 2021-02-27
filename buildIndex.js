@@ -6,13 +6,13 @@ const stemmer = require('porter-stemmer').stemmer;
 let buildIndex = async () => {
     let text = await fs.readFile('./nltk_stop_words.txt', 'utf8'); 
     let stopWords = new Set(text.split("\n"));
-    let client = await MongoClient.connect(url);
+    let client = await MongoClient.connect(url, { useUnifiedTopology : true });
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let invertedIndex = client.db("TTDS").collection("invertedIndex");
         let index = 0;
 
-        let results = await quotesCollec.find({}).toArray();
+        let results = await quotesCollec.find({}).toArray(); // {"_id" : {"$lt" : 200}}
         for (i in results) {
             let quote = results[i];
             let q_id = quote['_id'];
@@ -23,7 +23,7 @@ let buildIndex = async () => {
                 let doc = {};
                 let queryResult = await invertedIndex.find({'term' : term}).toArray();
                 // Unique term or last document containing term has term_freq of > 200.
-                if (queryResult.length == 0 || queryResult[queryResult.length - 1]['term_freq'] > 200) { // 
+                if (queryResult.length == 0 || queryResult[queryResult.length - 1]['term_freq'] > 300) { // 
                     doc['_id'] = index;
                     doc['term'] = term;
                     doc['term_freq'] = 1; // num of times term occurs across all quotes
@@ -34,12 +34,12 @@ let buildIndex = async () => {
                     doc['books'][0]['quotes'] = [];
                     doc['books'][0]['quotes'].push(quote_obj);
 
-                    let res = await invertedIndex.insertOne(doc);
+                    await invertedIndex.insertOne(doc);
                     index += 1;
 
                     if (index == 1) {
                         // Non-unique index!
-                        const resIndex = invertedIndex.createIndex({"term" : 1});
+                        invertedIndex.createIndex({"term" : 1});
                     }
                 } 
                 else { // Term already exists 
@@ -92,7 +92,7 @@ let buildIndex = async () => {
             }
         } 
     } finally {
-        client.close();
+        console.log("Done.")
     }
 };
 
@@ -114,13 +114,17 @@ let idInArray = (arr, id) => {
             return i;
         }
     }
-
     return -1;
 }
 
 let run = async () => {
     let start = new Date().getTime();
-    await buildIndex();
+    try {
+        await buildIndex();
+    } catch(err) {
+        console.log("Error in buildIndex(): ", err);
+    }
+    
     let end = new Date().getTime();
     console.log(end - start);
 }
