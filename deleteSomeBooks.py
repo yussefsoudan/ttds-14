@@ -6,7 +6,7 @@ import os
 from helperFunctions import findISBN 
 from langdetect import detect
 
-directory = r"~/books"
+directory = r"../books"
 folders = ['7']
 nonEnglishBooks = 0
 nonISBNBooks = 0

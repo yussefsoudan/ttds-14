@@ -8,7 +8,7 @@ const url = "mongodb://localhost";
 let buildCollections = () => {
     let bookID = 0;
     let quoteID = 0;
-    let directory = "~/books";
+    let directory = "../books";
     let folders = ['7'];
     let booksDeleted = 0;
 
