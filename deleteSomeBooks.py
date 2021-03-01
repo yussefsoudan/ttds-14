@@ -6,8 +6,8 @@ import os
 from helperFunctions import findISBN 
 from langdetect import detect
 
-directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3"
-folders = ['7', 'X', 'Y', 'Z']
+directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3/playground"
+folders = ['7']
 nonEnglishBooks = 0
 nonISBNBooks = 0
 emptyBooks = 0
