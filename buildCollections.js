@@ -60,21 +60,21 @@ let buildCollections = () => {
                                 
                             } else {
                                 // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
-                                // fs.unlink(filePath, (err) => {
-                                //     if (err) {
-                                //       console.error(err)
-                                //       return
-                                //     }
-                                
-                                //     // file removed
-                                // });
+                                fs.unlink(filePath, (err) => {
+                                    if (err) {
+                                      console.error(err)
+                                      return
+                                    }
+                                    booksDeleted += 1;
+                                    // file removed
+                                });
                             }
                         }); 
                     });
                 });
             }
         } finally {
-            console.log("Done");
+            console.log("Done building the collections. Books deleted: ", booksDeleted);
         }
         
     });
@@ -273,5 +273,17 @@ let getQuotes = (text) => {
     return quotes;
 }
 
+let run = async () => {
+    let start = new Date().getTime();
+    try {
+        buildCollections();
+    } catch(err) {
+        console.log("Error in buildCollections(): ", err);
+    }
+    
+    let end = new Date().getTime();
+    console.log("Finished building collections in ", (end - start) / 1000, " seconds");
+}
 
-buildCollections()
+run();
+
