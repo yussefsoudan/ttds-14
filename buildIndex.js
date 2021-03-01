@@ -28,7 +28,7 @@ let buildIndex = async () => {
                     let doc = {};
                     let queryResult = await invertedIndex.find({'term' : term}).toArray();
                     // Insert new docu when it's a unique term or last document containing term has term_freq of > 200.
-                    if (queryResult.length == 0 || queryResult[queryResult.length - 1]['term_freq'] > 300) { // 
+                    if (queryResult.length == 0 || queryResult[queryResult.length - 1]['term_freq'] > 200) { // 
                         doc['_id'] = index;
                         doc['term'] = term;
                         doc['term_freq'] = 1; // num of times term occurs across all quotes
