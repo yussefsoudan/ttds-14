@@ -8,7 +8,7 @@ const url = "mongodb://localhost";
 let buildCollections = () => {
     let bookID = 0;
     let quoteID = 0;
-    let directory = "/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3/playground";
+    let directory = "~/books";
     let folders = ['7'];
     let booksDeleted = 0;
 
@@ -65,8 +65,8 @@ let buildCollections = () => {
                                       console.error(err)
                                       return
                                     }
-                                    booksDeleted += 1;
                                     // file removed
+                                    booksDeleted += 1;
                                 });
                             }
                         }); 
