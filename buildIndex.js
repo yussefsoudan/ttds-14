@@ -6,7 +6,7 @@ const stemmer = require('porter-stemmer').stemmer;
 let buildIndex = async () => {
     let text = await fs.readFile('./nltk_stop_words.txt', 'utf8'); 
     let stopWords = new Set(text.split("\n"));
-    let client = await MongoClient.connect(url, { useUnifiedTopology : true });
+    let client = await MongoClient.connect(url);
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let invertedIndex = client.db("TTDS").collection("invertedIndex");
