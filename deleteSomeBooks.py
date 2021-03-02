@@ -7,7 +7,8 @@ from helperFunctions import findISBN
 from langdetect import detect
 
 directory = r"../books"
-folders = ['7']
+folders = ['0_Other', '0', '1', '2','3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+
 nonEnglishBooks = 0
 nonISBNBooks = 0
 emptyBooks = 0
