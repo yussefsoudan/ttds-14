@@ -9,7 +9,7 @@ let buildCollections = () => {
     let bookID = 0;
     let quoteID = 0;
     let directory = "../books";
-    let folders = ['0_Other', '0', '1', '2','3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    let folders = ['0_Other', '0'] // '1', '2']  ,'3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     let booksDeleted = 0;
 
     MongoClient.connect(url, { useUnifiedTopology : true }, function(err, client) {
@@ -86,6 +86,7 @@ let buildCollections = () => {
 
 let getBookMetadata = async (ISBN, title, author, max_tries) => {
     let URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
+    let APIKey = "key=AIzaSyDxE-bNMbTHHWaxU9bW78hV3qGPFFW-qZM";
     ISBN = ISBN.replace(/\s|:|-/gi, '');
     let metadata = {'title' : title, 
     'authors' : [author], 
@@ -97,7 +98,7 @@ let getBookMetadata = async (ISBN, title, author, max_tries) => {
     'previewLink' : '',
     'pageCount' : '',
     'averageRating' : ''}; 
-    let endpoint = URL + ISBN
+    let endpoint = URL + ISBN + APIKey;
     let accepted_cats = new Set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
                      'philosophy','young adult nonfiction','true crime','indic fiction (english)']);
     
