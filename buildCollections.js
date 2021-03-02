@@ -97,7 +97,7 @@ let getBookMetadata = async (ISBN, title, author, max_tries) => {
     'previewLink' : '',
     'pageCount' : '',
     'averageRating' : ''}; 
-    let endpoint = URL + ISBN + APIKey;
+    let endpoint = URL + ISBN //+ APIKey;
     let accepted_cats = new Set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
                      'philosophy','young adult nonfiction','true crime','indic fiction (english)']);
     
