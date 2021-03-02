@@ -19,7 +19,8 @@ let buildCollections = () => {
             let quotesCollec = client.db("TTDS").collection("quotes");
 
             for (i in folders) {
-                let subdir = directory + '/' + folders[i] + '/';
+                let subdir = directory + '/' + folders[i];
+                console.log(subdir)
                 fs.readdir(subdir, function (err, files) {
                     if (err) console.error("Could not list the directory.", err, "In folder: ", folders[i]);
                     console.log("Files size: ", files.length)
