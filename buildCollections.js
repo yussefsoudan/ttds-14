@@ -31,7 +31,7 @@ let buildCollections = async () => {
                 
                 let text = await fs.readFile(filePath, 'utf8'); 
                 
-                let ISBN = findISBN(text); // Books without ISBN have already been removed
+                let ISBN = findISBN(text) || ""; // Books without ISBN have already been removed
                 let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
                 if (bookMetadata == undefined) {
                     console.log("API limit reached on book ", filename, " with ISBN: ", ISBN);
