@@ -22,7 +22,6 @@ let buildCollections = () => {
                 let subdir = directory + '/' + folders[i] + '/';
                 fs.readdir(subdir, function (err, files) {
                     if (err) console.error("Could not list the directory.", err, "In folder: ", folders[i]);
-                    console.log("Reading files of folder: ", folders[i])
 
                     files.forEach(function (filename, index) { 
                         let filePath = subdir + '/' + filename; 
@@ -31,6 +30,7 @@ let buildCollections = () => {
                         let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
                         
                         fs.readFile(filePath, 'utf8', async function(err, text)  {
+                            console.log("Reading file: ", filename)
                             if (err) console.error(err, " in book ", filename);
                             
                             let ISBN = findISBN(text); // Books without ISBN have already been removed
