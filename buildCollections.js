@@ -8,7 +8,7 @@ const url = "mongodb://localhost";
 let buildCollections = () => {
     let bookID = 0;
     let quoteID = 0;
-    let directory = "../books";
+    let directory = "/root/books";
     let folders = ['0_Other', '0'] // '1', '2']  ,'3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     let booksDeleted = 0;
 
@@ -62,14 +62,14 @@ let buildCollections = () => {
                                 
                             } else {
                                 // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
-                                fs.unlink(filePath, (err) => {
-                                    if (err) {
-                                      console.error(err, " in book ", filename)
-                                      return
-                                    }
-                                    // file removed
-                                    booksDeleted += 1;
-                                });
+                                // fs.unlink(filePath, (err) => {
+                                //     if (err) {
+                                //       console.error(err, " in book ", filename)
+                                //       return
+                                //     }
+                                //     // file removed
+                                //     booksDeleted += 1;
+                                // });
                             }
                         }); 
                     });
