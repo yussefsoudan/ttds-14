@@ -29,13 +29,13 @@ let buildCollections = () => {
                         let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
                         let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
                         
-                        fs.readFile(filePath, 'utf8' , async function(err, text)  {
+                        fs.readFile(filePath, 'utf8', async function(err, text)  {
                             if (err) console.error(err);
                             
                             let ISBN = findISBN(text); // Books without ISBN have already been removed
                             let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
                             if (bookMetadata == undefined) {
-                                console.log("API limit reached", ISBN);
+                                console.log("API limit reached on book ", filename, " with ISBN: ", ISBN);
                             }
 
                             if (bookMetadata != false && bookMetadata != undefined) {
@@ -71,9 +71,6 @@ let buildCollections = () => {
                             }
                         }); 
                     });
-
-                    console.log("Finished processing folder: ", folders[i])
-
                 }); 
             }
         } finally {
@@ -86,7 +83,7 @@ let buildCollections = () => {
 
 let getBookMetadata = async (ISBN, title, author, max_tries) => {
     let URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
-    let APIKey = "key=AIzaSyDxE-bNMbTHHWaxU9bW78hV3qGPFFW-qZM";
+    let APIKey = "&key=AIzaSyDxE-bNMbTHHWaxU9bW78hV3qGPFFW-qZM";
     ISBN = ISBN.replace(/\s|:|-/gi, '');
     let metadata = {'title' : title, 
     'authors' : [author], 
