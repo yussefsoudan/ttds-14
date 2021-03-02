@@ -22,14 +22,13 @@ let buildCollections = () => {
                 let subdir = directory + '/' + folders[i] + '/';
                 fs.readdir(subdir, function (err, files) {
                     if (err) console.error("Could not list the directory.", err, "In folder: ", folders[i]);
-
+                    console.log("Files size: ", files.length)
                     files.forEach(function (filename, index) {
-                        console.log("Filepath 1: ", filePath) 
                         let filePath = subdir + '/' + filename; 
                         let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
                         let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
                         let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
-                        console.log("Filepath 2: ", filePath)
+                        
                         fs.readFile(filePath, 'utf8', async function(err, text)  {
                             console.log("Reading file: ", filename)
                             if (err) console.error(err, " in book ", filename);
