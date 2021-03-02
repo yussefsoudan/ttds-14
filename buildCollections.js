@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const fs = require('fs');
+const fs = require('fs/promises');
 const badChars = new Set(['#','<','>','*','_',':','\n','@']);
 const badWords = new Set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by','publisher','manuscript','editor','coincidental','reproduce','special thank']);
 const MongoClient = require('mongodb').MongoClient;
@@ -21,59 +21,54 @@ let buildCollections = () => {
             for (i in folders) {
                 let subdir = directory + '/' + folders[i];
                 console.log(subdir)
-                fs.readdir(subdir, function (err, files) {
-                    if (err) console.error("Could not list the directory.", err, "In folder: ", folders[i]);
-                    console.log("Files size: ", files.length)
-                    files.forEach(function (filename, index) {
-                        let filePath = subdir + '/' + filename; 
-                        let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
-                        let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
-                        let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
+                let files = await fs.readdir(subdir); 
+                console.log("Files size: ", files.length)
+                files.forEach(function (filename, index) {
+                    let filePath = subdir + '/' + filename; 
+                    let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
+                    let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
+                    let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
+                    
+                    let text = await fs.readFile(filePath, 'utf8'); 
+                    
+                    let ISBN = findISBN(text); // Books without ISBN have already been removed
+                    let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
+                    if (bookMetadata == undefined) {
+                        console.log("API limit reached on book ", filename, " with ISBN: ", ISBN);
+                    }
+
+                    if (bookMetadata != false && bookMetadata != undefined) {
+                        // Insert book
+                        bookMetadata["_id"] = bookID;
+                        bookID += 1;
+                        booksCollec.insertOne(bookMetadata, function(err, res) {
+                            if (err) console.log("Error inserting book: ", err, " in book ", filename);
+                        })
+
+                        // Insert quotes 
+                        let quotes = getQuotes(text);
+                        for (q in quotes) {
+                            let quote = quotes[q];
+                            quoteDoc = {"book_id" : (bookID), "quote" : quote};
+                            quoteDoc["_id"] = quoteID;
+                            quoteID += 1;
+                            quotesCollec.insertOne(quoteDoc, function(err, res) {
+                                if (err) console.log("Error inserting quote: ", err, " in book ", filename);
+                            });
+                        }
                         
-                        fs.readFile(filePath, 'utf8', async function(err, text)  {
-                            console.log("Reading file: ", filename)
-                            if (err) console.error(err, " in book ", filename);
-                            
-                            let ISBN = findISBN(text); // Books without ISBN have already been removed
-                            let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
-                            if (bookMetadata == undefined) {
-                                console.log("API limit reached on book ", filename, " with ISBN: ", ISBN);
-                            }
-
-                            if (bookMetadata != false && bookMetadata != undefined) {
-                                // Insert book
-                                bookMetadata["_id"] = bookID;
-                                bookID += 1;
-                                booksCollec.insertOne(bookMetadata, function(err, res) {
-                                    if (err) console.log("Error inserting book: ", err, " in book ", filename);
-                                })
-
-                                // Insert quotes 
-                                let quotes = getQuotes(text);
-                                for (q in quotes) {
-                                    let quote = quotes[q];
-                                    quoteDoc = {"book_id" : (bookID), "quote" : quote};
-                                    quoteDoc["_id"] = quoteID;
-                                    quoteID += 1;
-                                    quotesCollec.insertOne(quoteDoc, function(err, res) {
-                                        if (err) console.log("Error inserting quote: ", err, " in book ", filename);
-                                    });
-                                }
-                                
-                            } else {
-                                // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
-                                // fs.unlink(filePath, (err) => {
-                                //     if (err) {
-                                //       console.error(err, " in book ", filename)
-                                //       return
-                                //     }
-                                //     // file removed
-                                //     booksDeleted += 1;
-                                // });
-                            }
-                        }); 
-                    });
-                }); 
+                    } else {
+                        // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
+                        // fs.unlink(filePath, (err) => {
+                        //     if (err) {
+                        //       console.error(err, " in book ", filename)
+                        //       return
+                        //     }
+                        //     // file removed
+                        //     booksDeleted += 1;
+                        // });
+                    }
+                    }); 
             }
         } catch(err) {
             console.log(err);
