@@ -28,7 +28,7 @@ let buildCollections = () => {
                         let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
                         let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
                         let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
-                        
+                        console.log(filePath)
                         fs.readFile(filePath, 'utf8', async function(err, text)  {
                             console.log("Reading file: ", filename)
                             if (err) console.error(err, " in book ", filename);
