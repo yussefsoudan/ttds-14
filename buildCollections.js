@@ -22,7 +22,8 @@ let buildCollections = async () => {
             console.log(subdir)
             let files = await fs.readdir(subdir); 
             console.log("Files size: ", files.length)
-            files.forEach(async function (filename, index) {
+            for (let idx = 0; idx < files.length; idx++) {
+                let filename = files[idx];
                 let filePath = subdir + '/' + filename; 
                 let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
                 let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
@@ -66,8 +67,9 @@ let buildCollections = async () => {
                     //     // file removed
                     //     booksDeleted += 1;
                     // });
+                    booksDeleted += 1; // remove
                 }
-                }); 
+            }
         }
     } catch(err) {
         console.log(err);
