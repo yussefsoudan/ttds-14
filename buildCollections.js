@@ -22,7 +22,7 @@ let buildCollections = async () => {
             console.log(subdir)
             let files = await fs.readdir(subdir); 
             console.log("Files size: ", files.length)
-            files.forEach(function (filename, index) {
+            files.forEach(async function (filename, index) {
                 let filePath = subdir + '/' + filename; 
                 let authorIncluded = (filename.indexOf("-") > -1) ? true : false;
                 let title = (!authorIncluded) ? filename : filename.split("-")[0].trim();
