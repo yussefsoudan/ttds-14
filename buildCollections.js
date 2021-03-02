@@ -278,7 +278,7 @@ let getQuotes = (text) => {
 let run = async () => {
     let start = new Date().getTime();
     try {
-        buildCollections();
+        await buildCollections();
     } catch(err) {
         console.log("Error in buildCollections(): ", err);
     }
