@@ -76,7 +76,7 @@ let buildCollections = async () => {
         console.log(err);
     }
     finally {
-        console.log("Done building the collections. Books deleted: ", booksDeleted);
+        console.log("Done building the collections. Books not inserted: ", booksDeleted);
     }
         
 
