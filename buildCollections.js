@@ -43,7 +43,7 @@ let buildCollections = async () => {
                     bookID += 1;
                     booksCollec.insertOne(bookMetadata, function(err, res) {
                         if (err) console.log("Error inserting book: ", err, " in book ", filename);
-                        console.log("Book ", i, " inserted out of ", files.length);
+                        console.log("Book ", idx, " inserted out of ", files.length);
                     })
 
                     // Insert quotes 
