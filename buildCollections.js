@@ -21,7 +21,8 @@ let buildCollections = () => {
             for (i in folders) {
                 let subdir = directory + '/' + folders[i] + '/';
                 fs.readdir(subdir, function (err, files) {
-                    if (err) console.error("Could not list the directory.", err);
+                    if (err) console.error("Could not list the directory.", err, "In folder: ", folders[i]);
+                    console.log("Reading files of folder: ", folders[i])
 
                     files.forEach(function (filename, index) { 
                         let filePath = subdir + '/' + filename; 
@@ -30,7 +31,7 @@ let buildCollections = () => {
                         let author = (!authorIncluded) ? false : filename.split("-")[1].split(".")[0].trim();
                         
                         fs.readFile(filePath, 'utf8', async function(err, text)  {
-                            if (err) console.error(err);
+                            if (err) console.error(err, " in book ", filename);
                             
                             let ISBN = findISBN(text); // Books without ISBN have already been removed
                             let bookMetadata = await getBookMetadata(ISBN, title, author, 3);
@@ -43,7 +44,7 @@ let buildCollections = () => {
                                 bookMetadata["_id"] = bookID;
                                 bookID += 1;
                                 booksCollec.insertOne(bookMetadata, function(err, res) {
-                                    if (err) console.log("Error inserting book: ", err);
+                                    if (err) console.log("Error inserting book: ", err, " in book ", filename);
                                 })
 
                                 // Insert quotes 
@@ -54,7 +55,7 @@ let buildCollections = () => {
                                     quoteDoc["_id"] = quoteID;
                                     quoteID += 1;
                                     quotesCollec.insertOne(quoteDoc, function(err, res) {
-                                        if (err) console.log("Error inserting quote: ", err);
+                                        if (err) console.log("Error inserting quote: ", err, " in book ", filename);
                                     });
                                 }
                                 
@@ -62,7 +63,7 @@ let buildCollections = () => {
                                 // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
                                 fs.unlink(filePath, (err) => {
                                     if (err) {
-                                      console.error(err)
+                                      console.error(err, " in book ", filename)
                                       return
                                     }
                                     // file removed
@@ -73,7 +74,10 @@ let buildCollections = () => {
                     });
                 }); 
             }
-        } finally {
+        } catch(err) {
+            console.log(err);
+        }
+        finally {
             console.log("Done building the collections. Books deleted: ", booksDeleted);
         }
         
