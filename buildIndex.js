@@ -9,11 +9,12 @@ let buildIndex = async () => {
     let client = await MongoClient.connect(url);
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
+        let numOfQuotes = await client.db("TTDS").collection("quotes").count();
         let invertedIndex = client.db("TTDS").collection("invertedIndex");
         let index = 0;
 
         // Load 5000 quotes in memory at a time
-        for (let q_id_count = 5000; q_id_count <= 20000; q_id_count += 5000) { // 18575 is num of quotes in db
+        for (let q_id_count = 5000; q_id_count <= numOfQuotes; q_id_count += 5000) { 
             let lowerLimit = q_id_count-5000;
             let upperLimit = q_id_count;
             let results = await quotesCollec.find({"_id" : {"$lt" : upperLimit, "$gte" : lowerLimit}}).toArray();
@@ -96,6 +97,7 @@ let buildIndex = async () => {
                     }
                 }
             } 
+            console.log("Processed ", q_id_count, "quotes out of ", numOfQuotes);
         }    
     } finally {
         await client.db("TTDS").collection("invertedIndex").createIndex({"books._id" : 1});

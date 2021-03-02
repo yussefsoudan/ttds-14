@@ -72,6 +72,8 @@ let buildCollections = () => {
                         }); 
                     });
                 });
+
+                console.log("Finished building folder ", folders[i]);
             }
         } finally {
             console.log("Done building the collections. Books deleted: ", booksDeleted);
