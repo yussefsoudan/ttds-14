@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "mongodb": "^3.6.4",
+    "node-fetch": "^2.6.1",
+    "porter-stemmer": "^0.9.1"
+  }
+}
