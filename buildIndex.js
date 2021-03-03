@@ -12,12 +12,12 @@ let buildIndex = async () => {
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let numOfQuotes = await client.db("TTDS").collection("quotes").countDocuments();
-        let loadSize = Math.ceil(numOfQuotes / 200); 
+        let loadSize = 1000
+        let dict = {}
 
-        // Split ~57 million quotes into 200 groups
-        for (let r = 0; r < numOfQuotes; r += loadSize) {
-            let dict = {}
-            let lowerLimit = r;
+        // Load quotes in 1,000 at a time
+        for (let r = 0; r < 57000; r++) {
+            let lowerLimit = r * loadSize;
             let upperLimit = lowerLimit + loadSize;
             let quotes = await quotesCollec.find({"_id" : {"$lt" : upperLimit, "$gte" : lowerLimit}}).toArray();
             
@@ -38,19 +38,28 @@ let buildIndex = async () => {
                     dict[term]['books'][b_id]['quotes'].push({'_id' : q_id, 'len' : terms.length, 'pos': pos})
                 }
             }
+            if (r != 0 && r % 800 == 0) {
+                let keys = Object.keys(dict);
+                for (k in keys) {
+                    let term = keys[k];
+                    dict[term]['books'] = Object.values(dict[term]['books']);
+                }
 
-            let keys = Object.keys(dict);
-            for (k in keys) {
-                let term = keys[k];
-                dict[term]['books'] = Object.values(dict[term]['books']);
+                let file = await fs.writeFile(`/root/index/load-${r-799}.json`, JSON.stringify(Object.values(dict)), 'utf-8');
+                dict = null;
             }
-
-            let file = await fs.writeFile(`/root/index/load-${r}.json`, JSON.stringify(Object.values(dict)), 'utf-8');
-            dict = null;
-            
         
             console.log("Processed ", upperLimit, "quotes out of ", numOfQuotes);
         }   
+        
+        let keys = Object.keys(dict);
+        for (k in keys) {
+            let term = keys[k];
+            dict[term]['books'] = Object.values(dict[term]['books']);
+        }
+
+        let file = await fs.writeFile(`/root/index/load-${r-799}.json`, JSON.stringify(Object.values(dict)), 'utf-8');
+        dict = null;
 
     } finally {
         console.log("Done. Press Ctrl + C to exit program.")
