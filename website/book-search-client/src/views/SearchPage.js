@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState,useEffect} from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -10,9 +10,11 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import ResultPage from "./ResultPage.js"
+import findQuote from "../api/findQuote.js";
+
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -53,23 +55,64 @@ const useStyles = makeStyles((theme) => ({
 export default function SearchPage() {
   const classes = useStyles();
 
-  const [quote, setQuote] = React.useState('');
-  const [submitted,setSubmit] = React.useState(false)
+  // const [quote, setQuote] = useState('');
+  // const [submitted,setSubmit] = useState(false)
 
+  const [state, setState] = useState({
+    apiResponse: {
+      quote:"",
+      bookDetails:{}
+    } , 
+    quoteId: "",
+    isLoading : false,
+    requestError:""
+  });
 
   const handleChange = (event) => {
-    setQuote(event.target.value);
+    setState({...state,quoteId: event.target.value})
   };
 
-  const handleSubmit = (event) =>{
-    console.log(quote);
-    setSubmit(true)
-
+  const handleSubmit = () =>{
+    // Validate input 
+    // If input is correct then make the request otherwise change state
+    // and display appropriate component
+    findQuoteRequest();
   }
+
   const handleClear=(event)=> {
     event.preventDefault();
-    setQuote("");
-    setSubmit(false)
+    setState({...state, quoteId:"",apiResponse:{quote:""}})
+    // setQuote("");
+    // setSubmit(false)
+  }
+
+
+  const findQuoteRequest = async () => {
+    setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
+    console.log(state.isLoading)
+    const quoteId = state.quoteId;
+    await findQuote(quoteId)
+        .then(response => {
+            console.log("res in setAPIResponse: " + JSON.stringify(response));
+            setState({
+                ...state,
+                isLoading: false,
+                apiResponse: {
+                  quote: response.quote,
+                  bookDetails : response.book},
+                requestError: "",
+            });
+        })
+        .catch(errorResponse => {
+            setState({
+                ...state,
+                isLoading: false,
+                requestError: errorResponse,
+                apiResponse: {
+                  quote:""
+                }
+            });
+        });        
   }
 
   return (
@@ -87,7 +130,7 @@ export default function SearchPage() {
         <div className={classes.heroContent}>
           <Container maxWidth="sm">
             <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
-              Search Book by a quote
+              Search a book by a quote
             </Typography>
            
            {/* Search Bar */}
@@ -97,7 +140,7 @@ export default function SearchPage() {
             label="Type your quote..."
             multiline
             rowsMax={4}
-            value={quote}
+            value={state.quoteId}
             onChange={handleChange}
             ></TextField>
 
@@ -124,7 +167,14 @@ export default function SearchPage() {
         </div>
         <Container className={classes.cardGrid} maxWidth="md">
           {/* Container to hold the results of the search  */}
-          {submitted && <ResultPage quote={quote} /> }
+          {state.isLoading 
+          ? ( <div >
+            <CircularProgress />
+          </div>) 
+          : (<ResultPage quote={state.apiResponse} /> )
+          //  (<p>{JSON.stringify(state.apiResponse)}</p>)
+          }
+        {/* {submitted && <ResultPage quote={quote} /> } */}
 
 
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState,useEffect} from 'react';
 import Grid from '@material-ui/core/Grid';
 
 import BookCard from "../components/BookCard.js"
@@ -7,13 +7,13 @@ import BookCard from "../components/BookCard.js"
 const bookstest = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 
-export default function ResultPage({quote}) {
-    const [status, setStatus] = React.useState('idle')
-    const [error, setError] = React.useState(null)
-    const [books,setBooks] = React.useState([])
+export default function ResultPage([{quote,bookDetails}]) {
+    const [status, setStatus] = useState('idle')
+    const [error, setError] = useState(null)
+    const [books,setBooks] = useState([])
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!quote) {
           return
         }
@@ -21,7 +21,7 @@ export default function ResultPage({quote}) {
         // fetchBooks(quote).then(
         //   booksData => {
         //     setStatus('resolved')
-        //     setPokemon(booksData)
+        //     setBooks(booksData)
         //   },
         //   errorData => {
         //     setStatus('rejected')
