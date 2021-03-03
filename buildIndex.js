@@ -12,12 +12,11 @@ let buildIndex = async () => {
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let numOfQuotes = await client.db("TTDS").collection("quotes").countDocuments();
-        let loadSize = 100000
-        let dict = {}
-
+        let loadSize = Math.ceil(numOfQuotes / 70); 
         // Split ~57 million quotes into 570 groups
-        for (let r = 0; r < 570; r++) {
-            let lowerLimit = r * loadSize;
+        for (let r = 0; r < numOfQuotes; r += loadSize) {
+            let dict = {}
+            let lowerLimit = r;
             let upperLimit = lowerLimit + loadSize;
             let quotes = await quotesCollec.find({"_id" : {"$lt" : upperLimit, "$gte" : lowerLimit}}).toArray();
             
@@ -39,30 +38,18 @@ let buildIndex = async () => {
                 }
             }
 
-            if (r != 0 && r % 6 == 0) {
-                // Turn movies objects into array
-                let keys = Object.keys(dict);
-                for (k in keys) {
-                    let term = keys[k];
-                    dict[term]['books'] = Object.values(dict[term]['books']);
-                }
-
-                let file = await fs.writeFile(`/root/index/load-${r-9}.json`, JSON.stringify(Object.values(dict)), 'utf-8');
-                dict = null;
+            let keys = Object.keys(dict);
+            for (k in keys) {
+                let term = keys[k];
+                dict[term]['books'] = Object.values(dict[term]['books']);
             }
+
+            let file = await fs.writeFile(`/root/index/load-${r}.json`, JSON.stringify(Object.values(dict)), 'utf-8');
+            dict = null;
+            
         
             console.log("Processed ", upperLimit, "quotes out of ", numOfQuotes);
         }   
-
-        // Turn movies objects into array
-        let keys = Object.keys(dict);
-        for (k in keys) {
-            let term = keys[k];
-            dict[term]['books'] = Object.values(dict[term]['books']);
-        }
-
-        let file = await fs.writeFile(`/root/index/final-load.json`, JSON.stringify(Object.values(dict)), 'utf-8');
-        dict = null;
 
     } finally {
         console.log("Done. Press Ctrl + C to exit program.")
