@@ -7,12 +7,13 @@ let buildIndex = async () => {
     let text = await fs.readFile('./nltk_stop_words.txt', 'utf8'); 
     let stopWords = new Set(text.split("\n"));
     let client = await MongoClient.connect(url, { useUnifiedTopology : true});
-    let dict = {}
+    
 
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let numOfQuotes = await client.db("TTDS").collection("quotes").countDocuments();
         let loadSize = 100000
+        let dict = {}
 
         // Split ~57 million quotes into 570 groups
         for (let r = 0; r < 570; r++) {
