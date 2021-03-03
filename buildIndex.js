@@ -53,7 +53,7 @@ let buildIndex = async () => {
                         doc = queryResult[queryResult.length - 1];
                         let docID = doc['_id']
                         let val = doc['term_freq'] + 1; 
-                        invertedIndex.updateOne({'_id' : docID}, {$set : { 'term_freq': val}})
+                        await invertedIndex.updateOne({'_id' : docID}, {$set : { 'term_freq': val}})
     
                         // Term already occured in this book
                         let b_arr_id = idInArray(doc['books'], b_id);
@@ -62,7 +62,7 @@ let buildIndex = async () => {
                             let key = `books.${b_arr_id}.term_freq_in_book`;
                             let val = doc['books'][b_arr_id]['term_freq_in_book'] + 1;
                             obj[key] = val;
-                            invertedIndex.updateOne({'term' : term}, {$set : obj});
+                            await invertedIndex.updateOne({'term' : term}, {$set : obj});
     
                             // Term already occured in this particular quote
                             let q_arr_id = idInArray(doc['books'][b_arr_id]['quotes'], q_id)
@@ -70,14 +70,14 @@ let buildIndex = async () => {
                                 let obj = {};
                                 let key = `books.${b_arr_id}.quotes.${q_arr_id}.pos`;
                                 obj[key] = pos;
-                                invertedIndex.updateOne({'_id' : docID}, {$push : obj})
+                                await invertedIndex.updateOne({'_id' : docID}, {$push : obj})
                             } // Term appeared in a new quote in this book
                             else {
                                 let obj = {}
                                 let key = `books.${b_arr_id}.quotes`;
                                 let val = {'_id' : q_id, 'len' : terms.length, 'pos' : [pos]};
                                 obj[key] = val;
-                                invertedIndex.updateOne({'_id' : docID}, {$push : obj});
+                                await invertedIndex.updateOne({'_id' : docID}, {$push : obj});
                             }
                             
                         } // First time term occurs in this book
@@ -92,7 +92,7 @@ let buildIndex = async () => {
                                 ]
                             };
                             obj[key] = val;
-                            invertedIndex.updateOne({'_id' : docID}, {$push : obj});
+                            await invertedIndex.updateOne({'_id' : docID}, {$push : obj});
                         }
                     }
                 }
