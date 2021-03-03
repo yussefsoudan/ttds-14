@@ -60,12 +60,13 @@ export default function SearchPage() {
 
   const [state, setState] = useState({
     apiResponse: {
-      quote:"",
+      quote:{},
       bookDetails:{}
     } , 
     quoteId: "",
     isLoading : false,
-    requestError:""
+    requestError:"",
+    success: false
   });
 
   const handleChange = (event) => {
@@ -81,7 +82,7 @@ export default function SearchPage() {
 
   const handleClear=(event)=> {
     event.preventDefault();
-    setState({...state, quoteId:"",apiResponse:{quote:""}})
+    setState({...state, quoteId:"",apiResponse:{},success : false})
     // setQuote("");
     // setSubmit(false)
   }
@@ -98,9 +99,10 @@ export default function SearchPage() {
                 ...state,
                 isLoading: false,
                 apiResponse: {
-                  quote: response.quote,
-                  bookDetails : response.book},
+                  quote: response.quote, // quote object
+                  bookDetails : response.book}, // book object
                 requestError: "",
+                success:true
             });
         })
         .catch(errorResponse => {
@@ -165,50 +167,18 @@ export default function SearchPage() {
             </div>
           </Container>
         </div>
+        
         <Container className={classes.cardGrid} maxWidth="md">
           {/* Container to hold the results of the search  */}
-          {state.isLoading 
+          {state.isLoading
           ? ( <div >
             <CircularProgress />
           </div>) 
-          : (<ResultPage quote={state.apiResponse} /> )
-          //  (<p>{JSON.stringify(state.apiResponse)}</p>)
+          :  ( state.success && <ResultPage results={[state.apiResponse]} /> ) // provide list of results
           }
-        {/* {submitted && <ResultPage quote={quote} /> } */}
-
-
-
-          {/* <Grid container spacing={4}>
-            {cards.map((card) => (
-              <Grid item key={card} xs={12} sm={6} md={4}>
-                <Card className={classes.card}>
-                  <CardMedia
-                    className={classes.cardMedia}
-                    image="https://source.unsplash.com/random"
-                    title="Image title"
-                  />
-                  <CardContent className={classes.cardContent}>
-                    <Typography gutterBottom variant="h5" component="h2">
-                      Heading
-                    </Typography>
-                    <Typography>
-                      This is a media card. You can use this section to describe the content.
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button size="small" color="primary">
-                      View
-                    </Button>
-                    <Button size="small" color="primary">
-                      Edit
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid> */}
         </Container>
       </main>
+
       {/* Footer */}
       <footer className={classes.footer}>
         <Typography variant="h6" align="center" gutterBottom>

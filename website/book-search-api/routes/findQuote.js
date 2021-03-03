@@ -15,8 +15,8 @@ router.post('/', async function (req, res) {
     let bookRes = await mongoDB.findInCollection("books", {_id: quoteRes.book_id});
     console.log()
     console.log("Book document body:" + JSON.stringify(bookRes));
-
-    let param = {"quote": quoteRes.quote, "book":bookRes };
+    let quote = {quoteId: quoteRes._id, quoteStr:quoteRes.quote}
+    let param = {"quote": quote, "book":bookRes };
     console.log("final param to be sent back is: " + JSON.stringify(param));
     res.json(param);
 });

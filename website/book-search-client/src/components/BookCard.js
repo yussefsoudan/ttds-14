@@ -31,27 +31,38 @@ const useStyles = makeStyles((theme) => ({
   }));
   
 
-export default function BookCard({book}) {
+export default function BookCard({resultObj}) {
+    console.log("Book card",resultObj)
     const classes = useStyles();
+    let book  = resultObj.bookDetails;
+    let quote = resultObj.quote.quoteStr;
+    console.log(book)
+    console.log(quote)
 
     return (
-    <Grid item key={book} xs={12} sm={6} md={4}>
+    <Grid item key={book._id} xs={12} sm={6} md={4}>
         <Card className={classes.card}>
         <CardMedia
             className={classes.cardMedia}
-            image="https://source.unsplash.com/random"
-            title="Image title"
+            // image="https://source.unsplash.com/random"
+            image = {book.thumbnail}
+            title={book.title}
         />
         <CardContent className={classes.cardContent}>
             <Typography gutterBottom variant="h5" component="h2">
-            Heading
+            {book.title}
             </Typography>
-            <Typography>
-            This is a media card. You can use this section to describe the content.
+            {book.authors.map((author)=>
+            <Typography component="h3">
+             {author}
+            </Typography>)}
+            
+            <Typography component="h4">
+            {quote}
             </Typography>
         </CardContent>
         <CardActions>
-            <Button size="small" color="primary">
+            <Button size="small" color="primary" href={book.previewLink}>
             View
             </Button>
             <Button size="small" color="primary">
