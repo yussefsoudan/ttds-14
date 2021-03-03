@@ -39,7 +39,7 @@ let buildIndex = async () => {
                 }
             }
 
-            if (r != 0 && r % 9 == 0) {
+            if (r != 0 && r % 6 == 0) {
                 // Turn movies objects into array
                 let keys = Object.keys(dict);
                 for (k in keys) {
@@ -48,7 +48,7 @@ let buildIndex = async () => {
                 }
 
                 let file = await fs.writeFile(`/root/index/load-${r-9}.json`, JSON.stringify(Object.values(dict)), 'utf-8');
-                dict = {};
+                dict = null;
             }
         
             console.log("Processed ", upperLimit, "quotes out of ", numOfQuotes);
@@ -62,7 +62,7 @@ let buildIndex = async () => {
         }
 
         let file = await fs.writeFile(`/root/index/final-load.json`, JSON.stringify(Object.values(dict)), 'utf-8');
-        dict = {};
+        dict = null;
 
     } finally {
         console.log("Done. Press Ctrl + C to exit program.")
