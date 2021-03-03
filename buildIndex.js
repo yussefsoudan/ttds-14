@@ -12,8 +12,9 @@ let buildIndex = async () => {
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
         let numOfQuotes = await client.db("TTDS").collection("quotes").countDocuments();
-        let loadSize = Math.ceil(numOfQuotes / 150); 
-        // Split ~57 million quotes into 70 groups
+        let loadSize = Math.ceil(numOfQuotes / 200); 
+
+        // Split ~57 million quotes into 200 groups
         for (let r = 0; r < numOfQuotes; r += loadSize) {
             let dict = {}
             let lowerLimit = r;
