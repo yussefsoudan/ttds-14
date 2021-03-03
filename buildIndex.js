@@ -9,7 +9,7 @@ let buildIndex = async () => {
     let client = await MongoClient.connect(url);
     try {
         let quotesCollec = client.db("TTDS").collection("quotes");
-        let numOfQuotes = await client.db("TTDS").collection("quotes").count();
+        let numOfQuotes = await client.db("TTDS").collection("quotes").countDocuments();
         let invertedIndex = client.db("TTDS").collection("invertedIndex");
         let index = 0;
 
@@ -28,7 +28,7 @@ let buildIndex = async () => {
                     let term = terms[pos];
                     let doc = {};
                     let queryResult = await invertedIndex.find({'term' : term}).toArray();
-                    // Insert new doc when it's a unique term or last document containing term has term_freq of > 200.
+                    // Insert new docu when it's a unique term or last document containing term has term_freq of > 200.
                     if (queryResult.length == 0 || queryResult[queryResult.length - 1]['term_freq'] > 200) { // 
                         doc['_id'] = index;
                         doc['term'] = term;
@@ -53,7 +53,7 @@ let buildIndex = async () => {
                         doc = queryResult[queryResult.length - 1];
                         let docID = doc['_id']
                         let val = doc['term_freq'] + 1; 
-                        invertedIndex.updateOne({'_id' : docID}, {$set : { 'term_freq': val}});
+                        invertedIndex.updateOne({'_id' : docID}, {$set : { 'term_freq': val}})
     
                         // Term already occured in this book
                         let b_arr_id = idInArray(doc['books'], b_id);
@@ -142,4 +142,3 @@ let run = async () => {
 }
 
 run();
-
