@@ -41,14 +41,14 @@ def build_index():
             print(r)
             for value in tempIndex.values():
                 value['books'] = list(value['books'].values())
-            with open("root/index/" + str(r-800) + "-load" + '.pickle', 'wb') as handle:
+            with open("/root/index/" + str(r-284) + "-load" + '.pickle', 'wb') as handle:
                 pickle.dump(list(tempIndex.values()), handle, protocol=pickle.HIGHEST_PROTOCOL)
             tempIndex.clear()
             gc.collect()
 
     for value in tempIndex.values():
         value['books'] = list(value['books'].values())
-    with open("root/index/" + str(r-800) + "-load" + '.pickle', 'wb') as handle:
+    with open("/root/index/" + str(r-284) + "-load" + '.pickle', 'wb') as handle:
         pickle.dump(list(tempIndex.values()), handle, protocol=pickle.HIGHEST_PROTOCOL)
     tempIndex.clear()
     gc.collect()
