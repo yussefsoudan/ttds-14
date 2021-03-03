@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 nltk.download('stopwords')
 from nltk.stem.porter import *
 import pickle
+import gc
 
 
 def build_index():
@@ -36,18 +37,21 @@ def build_index():
                 tempIndex[term]['books'][b_id]['term_freq_in_book'] += 1
                 tempIndex[term]['books'][b_id]['quotes'].append({'_id' : q_id, 'len' : len(terms), 'pos': pos})
 
-        if (r != 0 and r % 800 == 0):
+        if r != 0 and (r % 284 == 0):
             print(r)
             for value in tempIndex.values():
                 value['books'] = list(value['books'].values())
             with open("root/index/" + str(r-800) + "-load" + '.pickle', 'wb') as handle:
                 pickle.dump(list(tempIndex.values()), handle, protocol=pickle.HIGHEST_PROTOCOL)
             tempIndex.clear()
+            gc.collect()
+
     for value in tempIndex.values():
         value['books'] = list(value['books'].values())
     with open("root/index/" + str(r-800) + "-load" + '.pickle', 'wb') as handle:
         pickle.dump(list(tempIndex.values()), handle, protocol=pickle.HIGHEST_PROTOCOL)
     tempIndex.clear()
+    gc.collect()
 
     client.close()
 
