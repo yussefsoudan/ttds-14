@@ -13,6 +13,7 @@ def write_index():
         if filename.endswith(".pickle"): 
             path = directory + filename 
             if os.path.getsize(path) > 0:
+                print("Processing " + path)
                 with open(path, 'rb') as handle:
                     docs = pickle.load(handle)
                     if len(docs) > 3:
