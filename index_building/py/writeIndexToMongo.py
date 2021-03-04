@@ -1,6 +1,7 @@
 import pymongo 
 import pickle
 import os
+import gc 
 
 
 def write_index():
@@ -18,6 +19,8 @@ def write_index():
                     docs = pickle.load(handle)
                     if len(docs) > 3:
                         inverted_index.insert_many(docs)
+                        docs.clear() 
+                        gc.collect()
     inverted_index.create_index([("term", pymongo.ASCENDING)])
     inverted_index.create_index([("books._id", pymongo.ASCENDING)])
     inverted_index.create_index([("books.quotes._id", pymongo.ASCENDING)])
