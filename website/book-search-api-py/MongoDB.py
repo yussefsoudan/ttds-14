@@ -8,7 +8,7 @@ class MongoDB:
         db = client["TTDS"]
         self.books = db["books"]
         self.quotes = db["quotes"]
-        self.inverted_index = db["inverted_index"]
+        self.inverted_index = db["invertedIndex"] # carefull, might be named inverted_index in your db
         # self.quotes.create_index('_id')
 
         # self.inverted_index = self.ttds.inverted_index
@@ -19,13 +19,20 @@ class MongoDB:
         # self.inverted_index_gridfs = gridfs.GridFS(self.ttds)
 
 
-    def get_quotes_by_list_of_quote_ids(self, id: str):
-        # Given a list of quote ids, return a list of quote dictionaries, sorted in the same order that the ids are provided.
-        print(id)
+    def get_quotes_id(self, id: str):
+        # Given a  quote id, return the quote object
+        
         quote = self.quotes.find_one({"_id": id})
         print("Quote list returned from db ",quote)
-        # Sort results from mongodb by the ids list, since the order is not maintained
-        # sorted_quote_dict = {d['_id']: d for d in quote_list}  # sentence_id -> sentence_dict
-        # print("DIctionary ",sorted_quote_dict)
-        # sorted_quote_list = [sorted_quote_dict[i] for i in ids]
+
         return quote
+
+    
+    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000):
+        docs_for_term = self.inverted_index.find({"_id": term})
+        docs_for_term = docs_for_term.skip(skip).limit(limit)
+        return docs_for_term
+
+    
+    def get_movies_by_term(self, term: str):
+        return self.inverted_index.find({"_id": term}, {"books._id.quotes": 0})
