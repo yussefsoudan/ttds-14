@@ -7,6 +7,7 @@ import json
 # from ir_eval.ranking.movie_search import ranked_movie_search
 import re
 import time
+from MongoDB import MongoDB 
 # from ir_eval.preprocessing import preprocess
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
@@ -30,11 +31,25 @@ db = MongoDB()
 # cache = ResultsCache.instance()  # Usage: cache.get(params, which_cache), cache.store(params, output, which_cache)
 # QUOTES_CACHE = 'quotes'
 # MOVIES_CACHE = 'movies'
+# @app.after_request
+# def add_headers(response):
+#     response.headers.add('Access-Control-Allow-Origin', '*')
+#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
 
 @app.route('/')
 def home():
     return 'Hello, World!'
+
+
+@app.route('/quote-list',  methods=['POST'])
+# @cross_origin()
+def quote_list():
+    print("Request.get_json ",request.get_json())
+    quote_id = request.get_json()["_id"]
+    result = db.get_quotes_by_list_of_quote_ids(quote_id)
+    print("FROM app.py",result)
+    return result
 
 
 # def merge_lists(l1, l2, key):
@@ -235,20 +250,20 @@ def home():
 
 # @app.route('/query_suggest')
 # def query_suggest():
-    query = request.args.get('query', '').strip().split()
-    if len(query) == 0:  # no words in the query, return empty list of suggestions
-        return {'results': []}
+    # query = request.args.get('query', '').strip().split()
+    # if len(query) == 0:  # no words in the query, return empty list of suggestions
+    #     return {'results': []}
 
-    predictions = [request.args.get('query', '').strip()]
-    for i in range(3):  # make 3 predictions based on the previous one
-        prev_query = predictions[len(predictions)-1]
-        prev_word = prev_query.split()[-1]  # last word of the previous prediction
-        next_word = predict_next_word(prev_word)
-        if next_word:
-            predictions.append(prev_query + " " + next_word)
-    predictions.pop(0)  # remove the first prediction (which is the query itself)
+    # predictions = [request.args.get('query', '').strip()]
+    # for i in range(3):  # make 3 predictions based on the previous one
+    #     prev_query = predictions[len(predictions)-1]
+    #     prev_word = prev_query.split()[-1]  # last word of the previous prediction
+    #     next_word = predict_next_word(prev_word)
+    #     if next_word:
+    #         predictions.append(prev_query + " " + next_word)
+    # predictions.pop(0)  # remove the first prediction (which is the query itself)
 
-    return {'results': predictions}
+    # return {'results': predictions}
 
 
 if __name__ == '__main__':
