@@ -14,6 +14,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import ResultPage from "./ResultPage.js"
 import findQuote from "../api/findQuote.js";
+import test from "../api/test.js";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -77,7 +78,8 @@ export default function SearchPage() {
     // Validate input 
     // If input is correct then make the request otherwise change state
     // and display appropriate component
-    findQuoteRequest();
+    // findQuoteRequest();
+    test()
   }
 
   const handleClear=(event)=> {

@@ -13,30 +13,30 @@ function App(){
     });
 
 
-    useEffect(() => {
-        const setUpRequest = async () => {
-          setState({ ...state, connectDB: { ...state.connectDB, isLoading: true } });
-          await setUp()
-            .then(response => {
-              console.log(response);
-              setState({
-                ...state,
-                connectDB: {
-                  isLoading: false,
-                }
-              });
-            })
-            .catch(errorResponse => {
-              setState({
-                ...state,
-                connectDB: { isLoading: false, error: errorResponse }
-              });
-            });
-        };
+    // useEffect(() => {
+    //     const setUpRequest = async () => {
+    //       setState({ ...state, connectDB: { ...state.connectDB, isLoading: true } });
+    //       await setUp()
+    //         .then(response => {
+    //           console.log(response);
+    //           setState({
+    //             ...state,
+    //             connectDB: {
+    //               isLoading: false,
+    //             }
+    //           });
+    //         })
+    //         .catch(errorResponse => {
+    //           setState({
+    //             ...state,
+    //             connectDB: { isLoading: false, error: errorResponse }
+    //           });
+    //         });
+    //     };
     
-        setUpRequest();
+    //     setUpRequest();
         
-      }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
+    //   }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
 
     return(
         //TODO: Display different component in case of a db connection error 
