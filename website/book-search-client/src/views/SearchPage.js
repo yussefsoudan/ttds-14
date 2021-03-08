@@ -79,7 +79,7 @@ export default function SearchPage() {
     // If input is correct then make the request otherwise change state
     // and display appropriate component
     // findQuoteRequest();
-    test(state.quoteId)
+    findQuote(state.quoteId)
   }
 
   const handleClear=(event)=> {

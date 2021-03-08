@@ -1,4 +1,4 @@
-
+import os.path
 import json
 import pickle
 import sys
@@ -15,12 +15,10 @@ import pprint
 from collections import Counter
 
 
-
 db = MongoDB()
 
 # ------------------- Book search and ranking --------------------------
 # -----------------------------------------------------------------------
-
 
 TOTAL_NUMBER_OF_BOOKS = 13
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
@@ -30,13 +28,22 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 # TO-DO: Write script to iterate over books and create a pickle file
 # containing their term count
 books_term_counts = defaultdict(lambda: 1)
+pickle_path = Path(__file__).parent.absolute() / 'pickles' / 'books_term_counts.p'
+
+if os.path.isfile(pickle_path):
+    movie_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
+    TOTAL_NUMBER_OF_MOVIES = len(movie_term_counts)
+else:
+    print("no pickle file for books term counts found")
+
 pprint.pprint(books_term_counts)
 
-
-def tfidf(book_id,book, term_book_count):
+    
+def tfidf(book_id, book_term_freq, term_book_count):
     """
     Computes TFIDF score for a document-term pair.
-    :param book: book from inverted index, containing {'_id': string, 'term_freq_in_book': int)
+    :param book_id: the _id of a book from the inverted index
+    :param book_term_freq: the term frequency of the term in the book, of the form {'term_freq_in_book': int)
     :param term_book_count: total number of books containing the term
     :return:
     """
@@ -46,18 +53,16 @@ def tfidf(book_id,book, term_book_count):
     TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
     IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
     """
-    tf = 1.0 * book['term_freq_in_book'] / books_term_counts.get(book_id,10000) # temporary value
+    tf = 1.0 * book_term_freq['term_freq_in_book'] / books_term_counts.get(book_id, 10000) # temporary value
     idf = math.log(1.0 * TOTAL_NUMBER_OF_BOOKS / term_book_count)
-
 
     return tf * idf
 
-
-def ranked_book_search(query_params, number_results):
-    tracker = movie_ranking_query_TFIDF(query_params)
+def ranked_book_search(query_params, number_results): # what is the number_results used for
+    tracker = book_ranking_query_TFIDF(query_params)
     return tracker
 
-def movie_ranking_query_TFIDF(query_params):
+def book_ranking_query_TFIDF(query_params):
     scored_books = {} 
     terms = query_params['query']
   
@@ -67,19 +72,19 @@ def movie_ranking_query_TFIDF(query_params):
         # Setup
         # Since index could have multiple occurences of term
         # it might return multiple Cursor objects 
-        term_docs = list(db.get_movies_by_term(term))
+        term_docs = list(db.get_books_by_term(term))
         total_book_count = 0
         for term_doc in term_docs:
             # print(term_doc)
             total_book_count += len(term_doc['books'])
 
-        print(f"Term {term} movie count: {total_book_count}")
+        print(f"Term {term} book count: {total_book_count}")
 
         # Compute
         for term_doc in term_docs:
             for book_id in term_doc['books']:
-                book = term_doc['books'][book_id]
-                score = tfidf(book_id,book,total_book_count)
+                book_term_freq = term_doc['books'][book_id] # returns { "term_freq_in_book" : int } 
+                score = tfidf(book_id,book_term_freq,total_book_count)
                 scored_books[book_id] = score
 
         # Time control
@@ -159,8 +164,6 @@ def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
     return float("{0:.4f}".format(next_param * idf_param))
 
 
-
-
 if __name__ == '__main__':
 
     db = MongoDB()
@@ -187,7 +190,7 @@ if __name__ == '__main__':
 
     query_params = {'query': ["luke", "father"], 'movie_title': '', 'year': '', 'actor': ''}
     start = time.time()
-    tracker = movie_ranking_query_TFIDF(query_params)
+    tracker = book_ranking_query_TFIDF(query_params)
     end = time.time()
     print(end-start)
     print(tracker)

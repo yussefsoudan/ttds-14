@@ -20,10 +20,9 @@ class MongoDB:
 
 
     def get_quotes_id(self, id: str):
-        # Given a  quote id, return the quote object
-        
+        # Given a quote id, return the quote object
         quote = self.quotes.find_one({"_id": id})
-        print("Quote list returned from db ",quote)
+        print("Quote list returned from db ", quote)
 
         return quote
 
@@ -34,5 +33,5 @@ class MongoDB:
         return docs_for_term
 
     
-    def get_movies_by_term(self, term: str):
-        return self.inverted_index.find({"_id": term}, {"books._id.quotes": 0})
+    def get_books_by_term(self, term: str):
+        return self.inverted_index.find({"_id": term}, {"books._id.quotes": 0}) # this doesnt remove the quotes 

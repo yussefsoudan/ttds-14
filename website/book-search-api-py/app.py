@@ -45,10 +45,10 @@ def home():
 @app.route('/quote-list',  methods=['POST'])
 # @cross_origin()
 def quote_list():
-    print("Request.get_json ",request.get_json())
+    print("Request.get_json ", request.get_json())
     quote_id = request.get_json()["_id"]
-    result = db.get_quotes_by_list_of_quote_ids(quote_id)
-    print("FROM app.py",result)
+    result = db.get_quotes_id(quote_id)
+    print("FROM app.py ", result)
     return result
 
 
