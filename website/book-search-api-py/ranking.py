@@ -28,7 +28,7 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 # TO-DO: Write script to iterate over books and create a pickle file
 # containing their term count
 books_term_counts = defaultdict(lambda: 1)
-pickle_path = Path(__file__).parent.absolute() / 'pickles' / 'books_term_counts.p'
+pickle_path = Path(__file__).parent.absolute() / 'books_term_counts.p'
 
 if os.path.isfile(pickle_path):
     movie_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
@@ -58,7 +58,7 @@ def tfidf(book_id, book_term_freq, term_book_count):
 
     return tf * idf
 
-def ranked_book_search(query_params, number_results): # what is the number_results used for
+def ranked_book_search(query_params): #, number_results # what is the number_results used for
     tracker = book_ranking_query_TFIDF(query_params)
     return tracker
 
@@ -104,7 +104,7 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
 
-def ranked_quote_retrieval(query, number_results, search_phrase=False):
+def ranked_quote_retrieval(query): # , number_results, search_phrase=False
     tracker = ranking_query_BM25(query, batch_size)
     return tracker # result_ids
 

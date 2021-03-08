@@ -8,6 +8,7 @@ import json
 import re
 import time
 from MongoDB import MongoDB 
+from ranking import *
 # from ir_eval.preprocessing import preprocess
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
@@ -41,16 +42,42 @@ db = MongoDB()
 def home():
     return 'Hello, World!'
 
-
-@app.route('/quote-list',  methods=['POST'])
-# @cross_origin()
-def quote_list():
+@app.route('/quote_from_id', methods=['POST'])
+def get_quote_from_quote_id():
     print("Request.get_json ", request.get_json())
     quote_id = request.get_json()["_id"]
-    result = db.get_quotes_id(quote_id)
+    result = db.get_quote_from_id(quote_id)
     print("FROM app.py ", result)
     return result
 
+# this tries out ranked_book_search function from ranking.py
+@app.route('/books_from_terms_list', methods=['POST'])
+def get_books_from_terms():
+    print("request in get_books_from_terms is {}".format(request.get_json()))
+    terms = request.get_json()["terms"]
+    ranked_books = ranked_book_search({"query": terms}) # ranked_book_search returns list: [(book_id, score)]
+    print("ranked books: {}".format(ranked_books))
+
+    # if we want book info apart from the book_ids we need to do another search - would this make sense?
+    ranked_book_ids = [i[0] for i in ranked_books]
+    result = {"book_titles": db.get_titles_by_book_id_list(ranked_book_ids)}
+
+    print("returning {} from get_books_from_terms".format(result))
+    return result
+
+# this tries out ranked_quote_retrieval function from ranking.py
+@app.route('/quotes_from_terms_list', methods=['POST'])
+def get_quotes_from_terms():
+    print("request in get_quotes_from_terms is {}".format(request.get_json()))
+    terms = request.get_json()["terms"]
+    ranked_quotes = ranked_quote_retrieval({"query": terms}) # ranked_quote_search returns list: [(quote_id, score)]
+    print("ranked quotes: {}".format(ranked_quotes))
+
+    ranked_quote_ids = [i[0] for i in ranked_quotes]
+    result = {"quotes": db.get_quotes_by_quote_id_list(ranked_quote_ids)}
+
+    print("returning {} from get_quotes_from_terms".format(result))
+    return result
 
 # def merge_lists(l1, l2, key):
 #     """ Updates one list with the matching information of the other, using the 'key' parameter.
