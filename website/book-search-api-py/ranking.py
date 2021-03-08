@@ -28,7 +28,7 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 # TO-DO: Write script to iterate over books and create a pickle file
 # containing their term count
 books_term_counts = defaultdict(lambda: 1)
-pickle_path = Path(__file__).parent.absolute() / 'books_term_counts.p'
+pickle_path = Path(__file__).parent.absolute() / "utils" / 'books_term_counts.p'
 
 if os.path.isfile(pickle_path):
     movie_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
