@@ -29,10 +29,11 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 # containing their term count
 books_term_counts = defaultdict(lambda: 1)
 pickle_path = Path(__file__).parent.absolute() / "utils" / 'books_term_counts.p'
+print(pickle_path)
 
 if os.path.isfile(pickle_path):
-    movie_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
-    TOTAL_NUMBER_OF_MOVIES = len(movie_term_counts)
+    books_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
+    TOTAL_NUMBER_OF_BOOKS = len(books_term_counts)
 else:
     print("no pickle file for books term counts found")
 
