@@ -14,8 +14,8 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import ResultPage from "./ResultPage.js"
 import findQuote from "../api/findQuote.js";
-import test from "../api/test.js";
-
+import getBooksFromTerms from "../api/getBooksFromTerms.js";
+import getQuotesFromTerms from "../api/getQuotesFromTerms.js";
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -79,7 +79,11 @@ export default function SearchPage() {
     // If input is correct then make the request otherwise change state
     // and display appropriate component
     // findQuoteRequest();
-    findQuote(state.quoteId)
+
+    // so far i'm just testing them in the same submit
+    // findQuote(state.quoteId)
+    // getBooksFromTerms(state.quoteId.split(" ")) // splitting on phrase to get a list of terms
+    getQuotesFromTerms(state.quoteId.split(" "))
   }
 
   const handleClear=(event)=> {

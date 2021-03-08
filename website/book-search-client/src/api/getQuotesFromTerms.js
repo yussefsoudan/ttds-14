@@ -1,10 +1,9 @@
 const axios = require('axios');
-// const findQuoteURL = 'http://localhost:9000/findQuote';
-const findQuoteURL = 'http://127.0.0.1:5000/quote_from_id';
+const getQuotesURL = 'http://127.0.0.1:5000/quotes_from_terms_list';
 
-const findQuote = async(quoteId) => {
-    return axios.post(findQuoteURL,{
-        _id: quoteId,
+const getQuotesFromTerms = async(terms) => {
+    return axios.post(getQuotesURL,{
+        terms: terms,
         responseType: 'json'
     })
     .then(response => {
@@ -16,6 +15,6 @@ const findQuote = async(quoteId) => {
     });   
 }
 
-export default findQuote;
+export default getQuotesFromTerms;
 
 
