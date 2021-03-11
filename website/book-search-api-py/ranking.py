@@ -94,7 +94,6 @@ def book_ranking_query_TFIDF(query_params):
     return Counter(scored_books).most_common(20)
 
 
-
 # ------------------- Quote search and ranking --------------------------
 # -----------------------------------------------------------------------
 
@@ -162,6 +161,11 @@ def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
     idf_param = math.log( (doc_nums-doc_nums_term+0.5) / (doc_nums_term+0.5) )
     next_param = ((k1 + 1) * term_freq) / (K + term_freq)
     return float("{0:.4f}".format(next_param * idf_param))
+
+
+# ------------------- Phrase search and ranking --------------------------
+# -----------------------------------------------------------------------
+
 
 
 if __name__ == '__main__':
