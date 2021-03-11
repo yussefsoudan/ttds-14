@@ -11,11 +11,22 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Switch from '@material-ui/core/Switch';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import Input from '@material-ui/core/Input';
+import NativeSelect from '@material-ui/core/NativeSelect';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+
 
 import ResultPage from "./ResultPage.js"
 import findQuote from "../api/findQuote.js";
 import getBooksFromTerms from "../api/getBooksFromTerms.js";
 import getQuotesFromTerms from "../api/getQuotesFromTerms.js";
+import SearchFeatures from "../components/SearchFeatures.js";
+
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -50,8 +61,19 @@ const useStyles = makeStyles((theme) => ({
   margin: {
     margin: theme.spacing(1),
   },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
+
 }));
 
+
+
+let years = []
+for(var i = 1990; i< 2021; i++){
+  years.push(i)
+}
 
 export default function SearchPage() {
   const classes = useStyles();
@@ -65,6 +87,15 @@ export default function SearchPage() {
       bookDetails:{}
     } , 
     quoteId: "",
+    quote:"",
+    searchFeaturesInput:{
+      bookSearch : false,
+      author : "",
+      bookTitle: "",
+      genre: "",
+      yearTo : -1,
+      yearFrom:-1
+    },
     isLoading : false,
     requestError:"",
     success: false
@@ -74,6 +105,12 @@ export default function SearchPage() {
     setState({...state,quoteId: event.target.value})
   };
 
+  const handleSearchFeaturesChange = SearchFeaturesInput =>{
+    setState({...state, searchFeaturesInput:SearchFeaturesInput});
+    console.log("Search features input:" + JSON.stringify(SearchFeaturesInput));
+  }
+
+
   const handleSubmit = () =>{
     // Validate input 
     // If input is correct then make the request otherwise change state
@@ -82,8 +119,11 @@ export default function SearchPage() {
 
     // so far i'm just testing them in the same submit
     // findQuote(state.quoteId)
-    // getBooksFromTerms(state.quoteId.split(" ")) // splitting on phrase to get a list of terms
-    getQuotesFromTerms(state.quoteId.split(" "))
+    
+    if (state.searchFeaturesInput.bookSearch)
+      getBooksFromTerms(state.quoteId.split(" ")) // splitting on phrase to get a list of terms
+    else
+      getQuotesFromTerms(state.quoteId.split(" "))
   }
 
   const handleClear=(event)=> {
@@ -155,6 +195,9 @@ export default function SearchPage() {
             <Typography variant="h5" align="center" color="textSecondary" paragraph>
               Try to type something short and leading about the book you are looking for
             </Typography>
+
+            {/* Search features component  */}
+            <SearchFeatures handleChange = {handleSearchFeaturesChange}/>
 
             {/* Buttons */}
             <div className={classes.heroButtons}>
