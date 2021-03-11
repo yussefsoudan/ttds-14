@@ -14,16 +14,19 @@ let updateBooksWithRatingsCount = async () => {
 
         for (j in books) {
             let book = books[j];
-            let ISBN = book['isbn-13'];
-            if (ISBN == '') {
-                ISBN = book['isbn-10'];
-            } 
-            
-            let ratingsCount = await getRatingsCount(ISBN, 3);
-            if (ratingsCount == null) {
-                ratingsCount = "";
+            if (book["ratingsCount"] == "" && book["averageRating"] != "") {
+                let ISBN = book['isbn-13'];
+                if (ISBN == '') {
+                    ISBN = book['isbn-10'];
+                } 
+                
+                let ratingsCount = await getRatingsCount(ISBN, 3);
+                if (ratingsCount == null) {
+                    ratingsCount = "";
+                }
+                booksCollec.updateOne({"_id" : book['_id']}, {"$set" : {"ratingsCount" : ratingsCount}});
             }
-            booksCollec.updateOne({"_id" : book['_id']}, {"$set" : {"ratingsCount" : ratingsCount}});
+            
         }
 
         console.log("Finished ", upperLimit);
