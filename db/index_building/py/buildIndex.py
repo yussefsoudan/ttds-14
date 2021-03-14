@@ -27,15 +27,17 @@ def build_index(): # each term will have 200 docs max
         for q in quotes:
             q_id = q['_id']
             b_id = q['book_id']
+            regexForPos = re.compile("[\s.,;\(\)\[\]]")
+            termsSplit = regexForPos.split(q['quote'])
             terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', q['quote']) if not token.lower() in stopSet]
 
             for term in set(terms):
-                pos = [i for i, token in enumerate(terms) if token == term]
+                pos = [i for i, split in enumerate(termsSplit) if term in split]
                 tempIndex[term] = tempIndex.get(term, {'term' : term, 'term_freq' : 0, 'books' : {}})
                 tempIndex[term]['term_freq'] += 1
                 tempIndex[term]['books'][b_id] = tempIndex[term]['books'].get(b_id, {'_id': b_id, 'term_freq_in_book': 0, 'quotes': []})
                 tempIndex[term]['books'][b_id]['term_freq_in_book'] += 1
-                tempIndex[term]['books'][b_id]['quotes'].append({'_id' : q_id, 'len' : len(terms), 'pos': pos})
+                tempIndex[term]['books'][b_id]['quotes'].append({'_id' : q_id, 'len' : len(termsSplit), 'pos': pos})
 
         if r != 0 and (r % 284 == 0):
             print(r)
