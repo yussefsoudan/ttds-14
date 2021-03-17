@@ -25,34 +25,18 @@ import ResultPage from "./ResultPage.js"
 import findQuote from "../api/findQuote.js";
 import getBooksFromTerms from "../api/getBooksFromTerms.js";
 import getQuotesFromTerms from "../api/getQuotesFromTerms.js";
+import getSearchResults from "../api/getSearchResults.js";
 import SearchFeatures from "../components/SearchFeatures.js";
+import SearchBar from "../components/SearchBar.js";
 
 
 const useStyles = makeStyles((theme) => ({
   icon: {
     marginRight: theme.spacing(2),
   },
-  heroContent: {
-    backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(8, 0, 6),
-  },
-  heroButtons: {
-    marginTop: theme.spacing(4),
-  },
   cardGrid: {
     paddingTop: theme.spacing(8),
     paddingBottom: theme.spacing(8),
-  },
-  card: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  cardMedia: {
-    paddingTop: '56.25%', // 16:9
-  },
-  cardContent: {
-    flexGrow: 1,
   },
   footer: {
     backgroundColor: theme.palette.background.paper,
@@ -78,75 +62,47 @@ for(var i = 1990; i< 2021; i++){
 export default function SearchPage() {
   const classes = useStyles();
 
-  // const [quote, setQuote] = useState('');
-  // const [submitted,setSubmit] = useState(false)
-
   const [state, setState] = useState({
     apiResponse: {
-      quote:{},
-      bookDetails:{}
+      books:[]
     } , 
-    quoteId: "",
-    quote:"",
-    searchFeaturesInput:{
-      bookSearch : false,
-      author : "",
-      bookTitle: "",
-      genre: "",
-      yearTo : -1,
-      yearFrom:-1
-    },
     isLoading : false,
     requestError:"",
     success: false
   });
 
-  const handleChange = (event) => {
-    setState({...state,quoteId: event.target.value})
-  };
+/* 
+Single handleRequest function that will trigger the proper API function based on the
+type of search 
+ */
+  const handleRequest = async (searchInput) => {
 
-  const handleSearchFeaturesChange = SearchFeaturesInput =>{
-    setState({...state, searchFeaturesInput:SearchFeaturesInput});
-    console.log("Search features input:" + JSON.stringify(SearchFeaturesInput));
-  }
-
-
-  const handleSubmit = () =>{
-    // Validate input 
-    // If input is correct then make the request otherwise change state
-    // and display appropriate component
-    // findQuoteRequest();
-
-    // so far i'm just testing them in the same submit
-    // findQuote(state.quoteId)
-    
-    if (state.searchFeaturesInput.bookSearch)
-      getBooksFromTerms(state.quoteId.split(" ")) // splitting on phrase to get a list of terms
-    else
-      getQuotesFromTerms(state.quoteId.split(" "))
-  }
-
-  const handleClear=(event)=> {
-    event.preventDefault();
-    setState({...state, quoteId:"",apiResponse:{},success : false})
-    // setQuote("");
-    // setSubmit(false)
-  }
+    let {
+      quote, 
+      bookSearch,
+      author ,
+      bookTitle,
+      genre,
+      yearTo,
+      yearFrom} = searchInput
 
 
-  const findQuoteRequest = async () => {
     setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
     console.log(state.isLoading)
-    const quoteId = state.quoteId;
-    await findQuote(quoteId)
+    
+    let terms = quote.split(" ")
+    await getSearchResults(
+      bookSearch ? "/books_from_terms_list" : "/quotes_from_terms_list",
+
+      {terms, author ,bookTitle, genre, yearTo, yearFrom}
+      )
         .then(response => {
             console.log("res in setAPIResponse: " + JSON.stringify(response));
             setState({
                 ...state,
                 isLoading: false,
                 apiResponse: {
-                  quote: response.quote, // quote object
-                  bookDetails : response.book}, // book object
+                  books : response.books}, // book object, might contain quote as well 
                 requestError: "",
                 success:true
             });
@@ -175,55 +131,17 @@ export default function SearchPage() {
         </Toolbar>
       </AppBar>
       <main>
-        <div className={classes.heroContent}>
-          <Container maxWidth="sm">
-            <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
-              Search a book by a quote
-            </Typography>
-           
-           {/* Search Bar */}
-            <TextField 
-            fullWidth 
-            className={classes.margin} 
-            label="Type your quote..."
-            multiline
-            rowsMax={4}
-            value={state.quoteId}
-            onChange={handleChange}
-            ></TextField>
+        {/* Search bar including the Advance search options */}
+        <SearchBar handleRequest={handleRequest}/>
 
-            <Typography variant="h5" align="center" color="textSecondary" paragraph>
-              Try to type something short and leading about the book you are looking for
-            </Typography>
-
-            {/* Search features component  */}
-            <SearchFeatures handleChange = {handleSearchFeaturesChange}/>
-
-            {/* Buttons */}
-            <div className={classes.heroButtons}>
-              <Grid container spacing={2} justify="center">
-                <Grid item>
-                  <Button variant="contained" color="primary" onClick={handleSubmit}>
-                    Submit
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button variant="outlined" color="primary" onClick={handleClear}>
-                    Clear
-                  </Button>
-                </Grid>
-              </Grid>
-            </div>
-          </Container>
-        </div>
-        
+        {/* Results container */}
         <Container className={classes.cardGrid} maxWidth="md">
           {/* Container to hold the results of the search  */}
           {state.isLoading
           ? ( <div >
             <CircularProgress />
           </div>) 
-          :  ( state.success && <ResultPage results={[state.apiResponse]} /> ) // provide list of results
+          :  ( state.success && <ResultPage results={state.apiResponse.books} /> ) // provide list of results
           }
         </Container>
       </main>

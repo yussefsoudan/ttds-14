@@ -34,13 +34,18 @@ const useStyles = makeStyles((theme) => ({
 export default function BookCard({resultObj}) {
     console.log("Book card",resultObj)
     const classes = useStyles();
-    let book  = resultObj.bookDetails;
-    let quote = resultObj.quote.quoteStr;
+    let book  = resultObj;
+    let quote = resultObj.quote ?  resultObj.quote : "" //resultObj.quote.quoteStr;
     console.log(book)
     console.log(quote)
 
     return (
-    <Grid item key={book._id} xs={12} sm={6} md={4}>
+    <Grid 
+    item key={book._id}  
+    xs={12} 
+    sm={6} 
+    md={4}
+    >
         <Card className={classes.card}>
         <CardMedia
             className={classes.cardMedia}
@@ -70,6 +75,6 @@ export default function BookCard({resultObj}) {
             </Button>
         </CardActions>
         </Card>
-     </Grid>
+      </Grid>
     )              
   }

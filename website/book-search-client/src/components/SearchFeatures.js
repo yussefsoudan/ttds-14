@@ -47,7 +47,7 @@ export default function SearchFeatures(props) {
         setState({...state,[field]:value})
         
         /* Pass state to parent component  */
-        props.handleChange({[field]:value})
+        props.handleChange(field,value)
     };
 
 
