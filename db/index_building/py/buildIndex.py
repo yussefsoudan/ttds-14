@@ -27,7 +27,7 @@ def build_index(): # each term will have 200 docs max
         for q in quotes:
             q_id = q['_id']
             b_id = q['book_id']
-            regexForPos = re.compile("[\s.,;\(\)\[\]]")
+            regexForPos = re.compile("[\s.,;'\"\(\)\[\]]")
             termsSplit = regexForPos.split(q['quote'])
             terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', q['quote']) if not token.lower() in stopSet]
 
