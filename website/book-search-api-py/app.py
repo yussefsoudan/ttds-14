@@ -38,6 +38,16 @@ db = MongoDB()
 #     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
 
+def merge_dict_lists (l1,l2,key):
+    """ Updates one list with the matching information of the other, using the 'key' parameter."""
+    merged = l1
+    for n, item1 in enumerate(l1):
+        for item2 in l2:
+            if item1[key] == item2[key]:
+                merged[n].update(item2)
+    return merged
+
+
 @app.route('/')
 def home():
     return 'Hello, World!'
@@ -60,21 +70,53 @@ def get_books_from_terms():
 
     # if we want book info apart from the book_ids we need to do another search - would this make sense?
     ranked_book_ids = [i[0] for i in ranked_books]
-    result = {"book_titles": db.get_titles_by_book_id_list(ranked_book_ids)}
+    book_results = db.get_books_by_book_id_list(ranked_book_ids)
 
+    for dic_book in book_results:
+        if dic_book is not None and 'book_id' not in dic_book:  # book_id may already be added if different quotes share the same book!
+            dic_book['book_id'] = dic_book.pop('_id')
+    
+    # Responsibility of front end to determine that this object will not contain
+    # quotes and just displaying the requested quote
+    result = {"books": book_results}
+    print('-'*50)
     print("returning {} from get_books_from_terms".format(result))
     return result
 
 # this tries out ranked_quote_retrieval function from ranking.py
+# In this function, both simple quote search and phrase search will be handled
 @app.route('/quotes_from_terms_list', methods=['POST'])
 def get_quotes_from_terms():
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
     terms = request.get_json()["terms"]
+
+    # TODO
+    # Perform a check on the request string to check if 
+    # a phrase search was requested and update the flag below
+    phrase_search  = False
+
     ranked_quotes = ranked_quote_retrieval({"query": terms}) # ranked_quote_search returns list: [(quote_id, score)]
     print("ranked quotes: {}".format(ranked_quotes))
 
     ranked_quote_ids = [i[0] for i in ranked_quotes]
-    result = {"quotes": db.get_quotes_by_quote_id_list(ranked_quote_ids)}
+    quotes_results = db.get_quotes_by_quote_id_list(ranked_quote_ids)
+    
+    for i, dic_quote in enumerate(quotes_results):
+        dic_quote['quote_id'] = dic_quote.pop('_id')
+    
+    # Get book Details for book_ids
+    book_ids = ([dic['book_id'] for dic in quotes_results])
+    books = db.get_books_by_book_id_list(book_ids)
+    for dic_book in books:
+        if dic_book is not None and 'movie_id' not in dic_book:  # movie_id may already be added if different quotes share the same movie!
+            dic_book['book_id'] = dic_book.pop('_id')
+
+    # Merge book Details with Quotes
+    # Appending the book details to the quotes object
+    query_results = merge_dict_lists(quotes_results, books, 'book_id')
+
+
+    result = {"books": query_results}
 
     print("returning {} from get_quotes_from_terms".format(result))
     return result
