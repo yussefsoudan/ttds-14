@@ -28,11 +28,17 @@ class MongoDB:
         books = list(self.books.find({"_id": {"$in": book_ids}}))
         book_titles = [book["title"] for book in books] # if return more than titles, modify this
         return book_titles
+
+    def get_books_by_book_id_list(self, book_ids: List[str]):
+        books = list(self.books.find({"_id": {"$in": book_ids}}))
+        return books
     
     def get_quotes_by_quote_id_list(self, quote_ids: List[str]):
         quotes_obj = list(self.quotes.find({"_id": {"$in": quote_ids}}))
-        quotes = [quote["quote"] for quote in quotes_obj] 
-        return quotes
+        # quotes = [quote["quote"] for quote in quotes_obj] 
+
+        # need the entire object to retrieve the associated books later
+        return quotes_obj
 
     def get_docs_by_term(self, term: str, skip: int, limit: int = 1000):
         docs_for_term = self.inverted_index.find({"_id": term})
