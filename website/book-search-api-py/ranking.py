@@ -117,7 +117,7 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     doc_nums = TOTAL_NUMBER_OF_SENTENCES
     total_start_time = time.time()
     for term in terms:
-        print("Term",term)
+        print("Term:",term)
         term_start_time = time.time()
         try:
             # iterate documents of this term by batches
@@ -136,13 +136,10 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                     # number of documents containing the term
                     # maybe the index field  should be named doc_count instead
                     doc_nums_term = term_doc['term_freq'] 
-                    print("Document frequency",doc_nums_term)
+                    print("Document frequency", doc_nums_term)
                     # print(term_doc['books'])
-                    for b, book_id in enumerate(term_doc['books']):
-                        book  = term_doc['books'][book_id]
-                        # print(book)
-                        for q, quote_id in enumerate(book['quotes']):
-                            quote = book['quotes'][quote_id]
+                    for book_id, book in enumerate(term_doc['books']):
+                        for quote_id, quote in enumerate(book['quotes']):
                             # how many times the term appears in the quote
                             term_freq = len(quote['pos']) 
                             dl = quote['len']

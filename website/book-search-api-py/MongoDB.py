@@ -4,11 +4,11 @@ from typing import List
 class MongoDB:
     def __init__(self):
         super().__init__()
-        client = MongoClient("mongodb://localhost:27017/")
+        client = MongoClient("mongodb://188.166.173.191:27017")
         db = client["TTDS"]
         self.books = db["books"]
         self.quotes = db["quotes"]
-        self.inverted_index = db["invertedIndex"] # carefull, might be named inverted_index in your db
+        self.inverted_index = db["invertedIndex"] 
         # self.quotes.create_index('_id')
 
         # self.inverted_index = self.ttds.inverted_index
@@ -41,7 +41,7 @@ class MongoDB:
         return quotes_obj
 
     def get_docs_by_term(self, term: str, skip: int, limit: int = 1000):
-        docs_for_term = self.inverted_index.find({"_id": term})
+        docs_for_term = self.inverted_index.find({"term": term})
         docs_for_term = docs_for_term.skip(skip).limit(limit)
         return docs_for_term
     
