@@ -1,0 +1,161 @@
+import React, {useState,useEffect} from 'react';
+import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import BookIcon from '@material-ui/icons/Book';
+
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Grid from '@material-ui/core/Grid';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
+import Container from '@material-ui/core/Container';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Switch from '@material-ui/core/Switch';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import Input from '@material-ui/core/Input';
+import NativeSelect from '@material-ui/core/NativeSelect';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+
+
+import ResultPage from "./ResultPage.js"
+import findQuote from "../api/findQuote.js";
+import getBooksFromTerms from "../api/getBooksFromTerms.js";
+import getQuotesFromTerms from "../api/getQuotesFromTerms.js";
+import getSearchResults from "../api/getSearchResults.js";
+import SearchFeatures from "../components/SearchFeatures.js";
+import SearchBar from "../components/SearchBar.js";
+
+
+const useStyles = makeStyles((theme) => ({
+  icon: {
+    marginRight: theme.spacing(2),
+  },
+  cardGrid: {
+    paddingTop: theme.spacing(8),
+    paddingBottom: theme.spacing(8),
+  },
+  footer: {
+    backgroundColor: theme.palette.background.paper,
+    padding: theme.spacing(6),
+  },
+  margin: {
+    margin: theme.spacing(1),
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
+
+}));
+
+
+
+let years = []
+for(var i = 1990; i< 2021; i++){
+  years.push(i)
+}
+
+export default function SearchPage() {
+  const classes = useStyles();
+
+  const [state, setState] = useState({
+    apiResponse: {
+      books:[]
+    } , 
+    isLoading : false,
+    requestError:"",
+    success: false
+  });
+
+/* 
+Single handleRequest function that will trigger the proper API function based on the
+type of search 
+ */
+  const handleRequest = async (searchInput) => {
+
+    let {
+      quote, 
+      bookSearch,
+      author ,
+      bookTitle,
+      genre,
+      yearTo,
+      yearFrom} = searchInput
+
+
+    setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
+    console.log(state.isLoading)
+    
+    let terms = quote.split(" ")
+    await getSearchResults(
+      bookSearch ? "/books_from_terms_list" : "/quotes_from_terms_list",
+
+      {terms, author ,bookTitle, genre, yearTo, yearFrom}
+      )
+        .then(response => {
+            console.log("res in setAPIResponse: " + JSON.stringify(response));
+            setState({
+                ...state,
+                isLoading: false,
+                apiResponse: {
+                  books : response.books}, // book object, might contain quote as well 
+                requestError: "",
+                success:true
+            });
+        })
+        .catch(errorResponse => {
+            setState({
+                ...state,
+                isLoading: false,
+                requestError: errorResponse,
+                apiResponse: {
+                  quote:""
+                }
+            });
+        });        
+  }
+
+  return (
+    <React.Fragment>
+      <CssBaseline />
+      <AppBar position="relative">
+        <Toolbar>
+          <BookIcon className={classes.icon} />
+          <Typography variant="h6" color="inherit" noWrap>
+            Book Search Engine
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <main>
+        {/* Search bar including the Advance search options */}
+        <SearchBar handleRequest={handleRequest}/>
+
+        {/* Results container */}
+        <Container className={classes.cardGrid} maxWidth="md">
+          {/* Container to hold the results of the search  */}
+          {state.isLoading
+          ? ( <div >
+            <CircularProgress />
+          </div>) 
+          :  ( state.success && <ResultPage results={state.apiResponse.books} /> ) // provide list of results
+          }
+        </Container>
+      </main>
+
+      {/* Footer */}
+      <footer className={classes.footer}>
+        <Typography variant="h6" align="center" gutterBottom>
+          Footer
+        </Typography>
+        <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
+          Something here to give the footer a purpose!
+        </Typography>
+      </footer>
+      {/* End footer */}
+    </React.Fragment>
+  );
+}
