@@ -13,8 +13,8 @@ import Button from '@material-ui/core/Button';
 
 const useStyles = makeStyles((theme) => ({
     cardGrid: {
-      paddingTop: theme.spacing(8),
-      paddingBottom: theme.spacing(8),
+      paddingTop: theme.spacing(2),
+      paddingBottom: theme.spacing(2),
     },
     card: {
       height: '100%',
@@ -32,21 +32,23 @@ const useStyles = makeStyles((theme) => ({
   
 
 export default function BookCard({resultObj}) {
-    console.log("Book card",resultObj)
+    // console.log("Book card",resultObj)
     const classes = useStyles();
     let book  = resultObj;
     let quote = resultObj.quote ?  resultObj.quote : "" //resultObj.quote.quoteStr;
-    console.log(book)
-    console.log(quote)
+    // console.log(book)
+    // console.log(quote)
 
     return (
     <Grid 
     item key={book._id}  
     xs={12} 
     sm={6} 
-    md={4}
+    className={classes.cardGrid}
+    
+    // md={4}
     >
-        <Card className={classes.card}>
+        <Card raised className={classes.card}>
         <CardMedia
             className={classes.cardMedia}
             // image="https://source.unsplash.com/random"

@@ -13,7 +13,7 @@ const getSearchResults = async(endpoint, params) => {
         responseType: 'json'
     })
     .then(response => {
-        console.log("res in callAPI is: " + JSON.stringify(response));
+        // console.log("res in callAPI is: " + JSON.stringify(response));
         return response.data;
       })
     .catch(error => {

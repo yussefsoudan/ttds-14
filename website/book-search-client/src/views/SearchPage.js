@@ -1,32 +1,17 @@
 import React, {useState,useEffect} from 'react';
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import BookIcon from '@material-ui/icons/Book';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Grid from '@material-ui/core/Grid';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Input from '@material-ui/core/Input';
-import NativeSelect from '@material-ui/core/NativeSelect';
-import InputLabel from '@material-ui/core/InputLabel';
-import FormControl from '@material-ui/core/FormControl';
 
 
 import ResultPage from "./ResultPage.js"
-import findQuote from "../api/findQuote.js";
-import getBooksFromTerms from "../api/getBooksFromTerms.js";
-import getQuotesFromTerms from "../api/getQuotesFromTerms.js";
 import getSearchResults from "../api/getSearchResults.js";
-import SearchFeatures from "../components/SearchFeatures.js";
 import SearchBar from "../components/SearchBar.js";
 
 
@@ -71,6 +56,8 @@ export default function SearchPage() {
     success: false
   });
 
+  console.log("Search page render")
+
 /* 
 Single handleRequest function that will trigger the proper API function based on the
 type of search 
@@ -97,7 +84,7 @@ type of search
       {terms, author ,bookTitle, genre, yearTo, yearFrom}
       )
         .then(response => {
-            console.log("res in setAPIResponse: " + JSON.stringify(response));
+            // console.log("res in setAPIResponse: " + JSON.stringify(response));
             setState({
                 ...state,
                 isLoading: false,
