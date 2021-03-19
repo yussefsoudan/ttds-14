@@ -7,42 +7,43 @@ import Pagination from '@material-ui/lab/Pagination';
 export default function ResultPage({results}) {
 
       const [state, setState] = useState({
-          results : [],
+          data : [],
           offset : 1,
           perPageResults: 10,
         });
 
+        console.log("Result page rendered")
 
-          
+        
         useEffect(() => {
-          setState({...state,results:results})
-        }, []);
 
-        console.log("Print cards")
-        console.log("Number of results",results.length)
-        const r = results.length
-        const l = state.perPageResult
-        console.log(r/l)
-        console.log(Number.isNaN(state.results.length) )
-        console.log(Number.isNaN( state.perPageResults ))
+          const onRender = async () => {
+            console.log("Use effect hook")
+            setState({...state,data:results})          
+            }
+          onRender()
+        },[]);
 
 
         const handlePaginationClick = (offset) => {
           setState({...state,offset:offset})
         }
-        var count;
-        if (state.results.length  % state.perPageResult == 0)
-          count = Math.floor(state.results.length/state.perPageResult) 
-        else
-          count = Math.floor(state.results.length/state.perPageResult) + 1
 
-        console.log("Count of pages",(state.results.length/state.perPageResult) )
+        // Calculate how many pagination page we will have 
+        var length = Object.keys(state.data).length;
+        var count;
+        if (length % Number(state.perPageResults) == 0)
+          count = Math.floor(length/Number(state.perPageResults)) 
+        else
+          count = Math.floor(length/Number(state.perPageResults)) + 1
+
+        console.log("Page count",count)
+
+
         return (
-        
         <Grid container 
         className="book-container" 
         spacing={6}
-         //  direction="column" 
          justify="center"   
          alignItems="center" 
          >
@@ -52,37 +53,31 @@ export default function ResultPage({results}) {
             xs={8}
           >
 
-
-         
-             {/* {results.length > state.resultLimit &&
+            {length > state.perPageResults &&
               <Pagination 
               count={count} 
               page={state.offset} 
               onChange={(e, offset) => handlePaginationClick(offset)} />
             }
 
-            {state.results.slice(state.offset, state.offset + state.resultLimit).filter((book) => {
+            {state.data.slice(
+             (state.offset -1 )*state.perPageResults, 
+              (state.offset-1)*state.perPageResults + Number(state.perPageResults)).filter((book) => {
                   return book.title != null;
               }).map((book,idx) =>
                   <BookCard  item key={idx} resultObj={book} />
               )}
 
-            {results.length > state.resultLimit &&
+            {length> state.perPageResults &&
              <Pagination 
              count={count} 
              page={state.offset} 
              onChange={(e, offset) => handlePaginationClick(offset)} />
-            } */}
-
-            {state.results.filter((book) => {
-                  return book.title != null;
-              }).map((book,idx) =>
-                  <BookCard  item key={idx} resultObj={book} />
-              )}
-
+            }
 
           </Grid>
         </Grid> 
+        
         )
 };
 
