@@ -30,6 +30,7 @@ class MongoDB:
         return book_titles
 
     def get_books_by_book_id_list(self, book_ids: List[str]):
+        print("Book id lists:",str(book_ids))
         books = list(self.books.find({"_id": {"$in": book_ids}}))
         return books
     
@@ -41,13 +42,15 @@ class MongoDB:
         return quotes_obj
 
     def get_docs_by_term(self, term: str, skip: int, limit: int = 1000):
+        print("Get documents by term")
         docs_for_term = self.inverted_index.find({"term": term})
         docs_for_term = docs_for_term.skip(skip).limit(limit)
         return docs_for_term
     
     def get_books_by_term(self, term: str):
-        return self.inverted_index.aggregate([
-            { "$project": { "books": { "$objectToArray": "$books" } } },
-            { "$project": { "books.v.quotes": 0} }, 
-            { "$project": { "books": { "$arrayToObject": "$books" } } }, 
-            { "$match": {"_id": term } } ])
+        return self.inverted_index.find({"term": term}, {"books.quotes": 0})
+        # return self.inverted_index.aggregate([
+        #     { "$project": { "books": { "$objectToArray": "$books" } } },
+        #     { "$project": { "books.v.quotes": 0} }, 
+        #     { "$project": { "books": { "$arrayToObject": "$books" } } }, 
+        #     { "$match": {"term": term } } ])

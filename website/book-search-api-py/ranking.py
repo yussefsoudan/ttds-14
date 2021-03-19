@@ -20,42 +20,34 @@ db = MongoDB()
 # ------------------- Book search and ranking --------------------------
 # -----------------------------------------------------------------------
 
-TOTAL_NUMBER_OF_BOOKS = 13
+TOTAL_NUMBER_OF_BOOKS = 13 # TODO NEEDS UPDATE!!!
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 
 
 # Dictionary containing for each book, the total number of terms 
 # TO-DO: Write script to iterate over books and create a pickle file
 # containing their term count
-books_term_counts = defaultdict(lambda: 1)
+books_total_term_counts = defaultdict(lambda: 1)
 pickle_path = Path(__file__).parent.absolute() / "utils" / 'books_term_counts.p'
 print(pickle_path)
 
 if os.path.isfile(pickle_path):
-    books_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
-    TOTAL_NUMBER_OF_BOOKS = len(books_term_counts)
+    books_total_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
+    TOTAL_NUMBER_OF_BOOKS = len(books_total_term_counts)
 else:
     print("no pickle file for books term counts found")
 
-pprint.pprint(books_term_counts)
+pprint.pprint(books_total_term_counts)
 
     
 def tfidf(book_id, book_term_freq, term_book_count):
-    """
-    Computes TFIDF score for a document-term pair.
-    :param book_id: the _id of a book from the inverted index
-    :param book_term_freq: the term frequency of the term in the book, of the form {'term_freq_in_book': int)
-    :param term_book_count: total number of books containing the term
-    :return:
-    """
-
     """ 
     Calculate
     TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
     IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
     """
-    tf = 1.0 * book_term_freq['term_freq_in_book'] / books_term_counts.get(book_id, 10000) # temporary value
-    idf = math.log(1.0 * TOTAL_NUMBER_OF_BOOKS / term_book_count)
+    tf = float(book_term_freq) / books_total_term_counts.get(book_id, 10000) # temporary value
+    idf = math.log(float(TOTAL_NUMBER_OF_BOOKS) / term_book_count)
 
     return tf * idf
 
@@ -83,8 +75,12 @@ def book_ranking_query_TFIDF(query_params):
 
         # Compute
         for term_doc in term_docs:
-            for book_id in term_doc['books']:
-                book_term_freq = term_doc['books'][book_id] # returns { "term_freq_in_book" : int } 
+            # print("Term doc",term_doc)
+            for book in term_doc['books']:
+                # print("Book id",book['_id'])
+                # print("Book term frequency",book['term_freq_in_book'])
+                book_id = book['_id']
+                book_term_freq = book['term_freq_in_book'] 
                 score = tfidf(book_id,book_term_freq,total_book_count)
                 scored_books[book_id] = score
 
@@ -100,7 +96,7 @@ def book_ranking_query_TFIDF(query_params):
 # -----------------------------------------------------------------------
 
 MAX_INDEX_SPLITS = 5  # maximum number of different entries in the inverted_index with the same term
-TOTAL_NUMBER_OF_SENTENCES = 18576 
+TOTAL_NUMBER_OF_SENTENCES = 18576  #TODO NEEDS UPDATE
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
@@ -132,17 +128,27 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                     if time.time() - term_start_time > MAX_TERM_TIME:
                         print("Time limit")
                         break
+                        
+                    # print("Term doc")
+                    # print(term_doc)
 
                     # number of documents containing the term
-                    # maybe the index field  should be named doc_count instead
+                    # documents in this case are the quotes
                     doc_nums_term = term_doc['term_freq'] 
-                    print("Document frequency", doc_nums_term)
+                    print("Document frequency",doc_nums_term )
+
+                    # return
                     # print(term_doc['books'])
-                    for book_id, book in enumerate(term_doc['books']):
-                        for quote_id, quote in enumerate(book['quotes']):
+                    for b,book in enumerate(term_doc['books']):
+                        for q,quote in enumerate(book['quotes']):
                             # how many times the term appears in the quote
-                            term_freq = len(quote['pos']) 
+                            term_freq = len(quote['pos']) #TODO CURRENTLY THIS IS 0 ALL THE TIME !!!!
+                            # document length, how many terms appear overall in this quote
                             dl = quote['len']
+                            quote_id = quote['_id']
+
+                            print("Term frequency",term_freq)
+                            print("Document length of current quote",dl)
                             score = score_BM25(doc_nums, doc_nums_term, term_freq, k1=1.2, b=0.75, dl=dl, avgdl=4.82) if dl < 100000 else 0
                             if score > 0:
                                 scored_quotes[quote_id] = score
@@ -166,42 +172,3 @@ if __name__ == '__main__':
 
     db = MongoDB()
     batch_size = 50
-
-    # start = time.time()
-    # # query_params = {'query': ["father"]} #, "boy", "girl"]}
-    # query_params = {'query': ["luke", "father"]}
-    # # query_params['movie_title'] = ''
-    # # query_params['year'] = ''
-    # # query_params['actor'] = ''
-
-    # tracker = ranking_query_BM25(query_params, batch_size)
-    # end = time.time()
-    # print("Time",end-start)
-    # pprint.pprint(tracker)
-
-
-    # for quote_id,score in tracker:
-    #     quote = db.get_quotes_id(quote_id)
-    #     print(quote['quote'])
-    #     print('-'*10)
-
-
-    query_params = {'query': ["luke", "father"], 'movie_title': '', 'year': '', 'actor': ''}
-    start = time.time()
-    tracker = book_ranking_query_TFIDF(query_params)
-    end = time.time()
-    print(end-start)
-    print(tracker)
-
-
-
-    # # query_params = {"year": "2000-2001"}
-    # query_params = {"year": "1980-1981", 'query': ["luke", "father"], 'movie_title': '', 'actor': ''}
-    # query_params['query'] = ["may"]
-    # query_params['movie_title'] = ''
-    # query_params['actor'] = ''
-    # start = time.time()
-    # tracker = ranking_query_BM25(query_params, batch_size)
-    # end = time.time()
-    # print(end-start)
-    # print(tracker.get_top(10))

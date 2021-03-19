@@ -108,7 +108,7 @@ def get_quotes_from_terms():
     book_ids = ([dic['book_id'] for dic in quotes_results])
     books = db.get_books_by_book_id_list(book_ids)
     for dic_book in books:
-        if dic_book is not None and 'movie_id' not in dic_book:  # movie_id may already be added if different quotes share the same movie!
+        if dic_book is not None and 'book_id' not in dic_book:  # movie_id may already be added if different quotes share the same movie!
             dic_book['book_id'] = dic_book.pop('_id')
 
     # Merge book Details with Quotes
