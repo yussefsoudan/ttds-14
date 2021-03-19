@@ -13,6 +13,7 @@ import clsx from 'clsx';
 import Collapse from '@material-ui/core/Collapse';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Highlighter from "react-highlight-words";
+import ShowMoreText from 'react-show-more-text';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -86,14 +87,28 @@ export default function BookCard({resultObj, searchTerms}) {
             </Typography>
               
             <Typography gutterBottom component="h4" variant="h6" style={{"color" : "darkblue", "font-style": "italic"}} >
-              <q cite="https://www.mozilla.org/en-US/about/history/details/">{
+              
+                
+                <ShowMoreText
+                /* Default options */
+                lines={3}
+                more='Show more'
+                less='Show less'
+                className='content-css'
+                anchorClass='my-anchor-css-class'
+                expanded={false}
+                width={280}
+                >
+                  <q cite="https://www.mozilla.org/en-US/about/history/details/">{
                 <Highlighter
                 highlightClassName="YourHighlightClass"
                 searchWords={searchTerms}
                 autoEscape={true}
                 textToHighlight={quote}
-              />
-              }</q>
+              />}</q>
+            </ShowMoreText>
+                
+              
             </Typography>
             <Button disableRipple size="small" color="primary" href={book.previewLink}  target="_blank" style={{'cursor' : 'pointer',  
               'textTransform': "none", 'backgroundColor': 'transparent'  }}>
