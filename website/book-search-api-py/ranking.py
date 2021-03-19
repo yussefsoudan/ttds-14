@@ -20,7 +20,7 @@ db = MongoDB()
 # ------------------- Book search and ranking --------------------------
 # -----------------------------------------------------------------------
 
-TOTAL_NUMBER_OF_BOOKS = 13 # TODO NEEDS UPDATE!!!
+TOTAL_NUMBER_OF_BOOKS = 30630 
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 
 
@@ -96,7 +96,7 @@ def book_ranking_query_TFIDF(query_params):
 # -----------------------------------------------------------------------
 
 MAX_INDEX_SPLITS = 5  # maximum number of different entries in the inverted_index with the same term
-TOTAL_NUMBER_OF_SENTENCES = 18576  #TODO NEEDS UPDATE
+TOTAL_NUMBER_OF_SENTENCES = 50630265  #TODO NEEDS UPDATE
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
