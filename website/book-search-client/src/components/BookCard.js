@@ -12,6 +12,7 @@ import SkipNextIcon from '@material-ui/icons/SkipNext';
 import clsx from 'clsx';
 import Collapse from '@material-ui/core/Collapse';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Highlighter from "react-highlight-words";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,12 +45,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function BookCard({resultObj}) {
+export default function BookCard({resultObj, searchTerms}) {
     const classes = useStyles();
     const [expanded, setExpanded] = React.useState(false);
 
     let book  = resultObj;
     let quote = resultObj.quote ?  resultObj.quote : "";
+    let quoteArr = quote.split(" ");
     let authors = ""
     for (let i = 0; i < book.authors.length; i++) {
       if (i == book.authors.length - 1) {
@@ -62,6 +64,7 @@ export default function BookCard({resultObj}) {
     const handleExpandClick = () => {
       setExpanded(!expanded);
     };
+
 
     return (
 
@@ -83,7 +86,14 @@ export default function BookCard({resultObj}) {
             </Typography>
               
             <Typography gutterBottom component="h4" variant="h6" style={{"color" : "darkblue", "font-style": "italic"}} >
-              <q cite="https://www.mozilla.org/en-US/about/history/details/">{quote}</q>
+              <q cite="https://www.mozilla.org/en-US/about/history/details/">{
+                <Highlighter
+                highlightClassName="YourHighlightClass"
+                searchWords={searchTerms}
+                autoEscape={true}
+                textToHighlight={quote}
+              />
+              }</q>
             </Typography>
             <Button disableRipple size="small" color="primary" href={book.previewLink}  target="_blank" style={{'cursor' : 'pointer',  
               'textTransform': "none", 'backgroundColor': 'transparent'  }}>
@@ -130,7 +140,6 @@ export default function BookCard({resultObj}) {
               <Typography gutterBottom component="h3"   >
               • Number of ratings: {book.ratingsCount}
               </Typography>
-              
             </CardContent>
           </Collapse>
         </div>

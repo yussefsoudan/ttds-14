@@ -46,6 +46,7 @@ export default function SearchPage() {
     apiResponse: {
       books:[]
     } , 
+    searchTerms : [],
     isLoading : false,
     requestError:"",
     success: false
@@ -72,7 +73,8 @@ type of search
     setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
     console.log(state.isLoading)
     
-    let terms = quote.split(" ")
+    let terms = quote.split(" ") 
+    
     await getSearchResults(
       bookSearch ? "/books_from_terms_list" : "/quotes_from_terms_list",
 
@@ -86,7 +88,8 @@ type of search
                 apiResponse: {
                   books : response.books}, // book object, might contain quote as well 
                 requestError: "",
-                success:true
+                success:true,
+                searchTerms:quote.split(" ")
             });
         })
         .catch(errorResponse => {
@@ -127,7 +130,7 @@ type of search
              >
             <CircularProgress />
           </Grid>) 
-          :  ( state.success && <ResultPage results={state.apiResponse.books} /> ) // provide list of results
+          :  ( state.success && <ResultPage results={state.apiResponse.books} searchTerms={state.searchTerms} /> ) // provide list of results
           }
         </Container>
       </main>

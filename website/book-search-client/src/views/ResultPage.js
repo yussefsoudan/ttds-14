@@ -4,10 +4,11 @@ import BookCard from "../components/BookCard.js"
 import Pagination from '@material-ui/lab/Pagination';
 
 //  props will be a list of book objects
-export default function ResultPage({results}) {
+export default function ResultPage({results, searchTerms}) {
 
       const [state, setState] = useState({
           data : [],
+          searchTerms : [],
           offset : 1,
           perPageResults: 10,
         });
@@ -16,10 +17,9 @@ export default function ResultPage({results}) {
 
         
         useEffect(() => {
-
           const onRender = async () => {
             console.log("Use effect hook")
-            setState({...state,data:results})          
+            setState({...state, data:results, searchTerms : searchTerms}) 
             }
           onRender()
         },[]);
@@ -65,7 +65,7 @@ export default function ResultPage({results}) {
               (state.offset-1)*state.perPageResults + Number(state.perPageResults)).filter((book) => {
                   return book.title != null;
               }).map((book,idx) =>
-                  <BookCard  item key={idx} resultObj={book} />
+                  <BookCard  item key={idx} resultObj={book} searchTerms={state.searchTerms} />
               )}
 
             {length> state.perPageResults &&
