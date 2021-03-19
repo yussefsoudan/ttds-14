@@ -109,14 +109,14 @@ type of search
   return (
     <React.Fragment>
       <CssBaseline />
-      <AppBar position="relative">
+      {/* <AppBar position="relative">
         <Toolbar>
           <BookIcon className={classes.icon} />
           <Typography variant="h6" color="inherit" noWrap>
             Book Search Engine
           </Typography>
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
       <main>
         {/* Search bar including the Advance search options */}
         <SearchBar handleRequest={handleRequest}/>
