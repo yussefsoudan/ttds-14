@@ -9,16 +9,22 @@ import Typography from '@material-ui/core/Typography';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
+import clsx from 'clsx';
+import Collapse from '@material-ui/core/Collapse';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
     marginTop: '5%',
     marginBottom: '5%',
+    border: '0.2em solid lightgrey'
   },
   cover: {
-    maxWidth: '100%',
-    padding: '0.7em'
+    maxWidth: 120,
+    minWidth: 120,
+    padding: 7,
+    objectFit: 'cover',
   },
   details: {
     display: 'flex',
@@ -26,10 +32,22 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
   },
+  expand: {
+    transform: 'rotate(0deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  expandOpen: {
+    transform: 'rotate(180deg)',
+  }
 }));
 
 export default function BookCard({resultObj}) {
     const classes = useStyles();
+    const [expanded, setExpanded] = React.useState(false);
+
     let book  = resultObj;
     let quote = resultObj.quote ?  resultObj.quote : "";
     let authors = ""
@@ -41,6 +59,10 @@ export default function BookCard({resultObj}) {
       }
     }
 
+    const handleExpandClick = () => {
+      setExpanded(!expanded);
+    };
+
     return (
 
       <Card className={classes.root} >
@@ -51,23 +73,69 @@ export default function BookCard({resultObj}) {
           "border" : "0.2em solid black", "border-radius" : "0.1em"}}/>
         </CardMedia>
         <div className={classes.details}>
+        
           <CardContent className={classes.content}>
             <Typography variant="h5" component="h2">
               {book.title}
+            </Typography>
+            <Typography gutterBottom component="h3"   >
+              {authors}
+            </Typography>
+              
+            <Typography gutterBottom component="h4" variant="h6" style={{"color" : "darkblue", "font-style": "italic"}} >
+              <q cite="https://www.mozilla.org/en-US/about/history/details/">{quote}</q>
+            </Typography>
+            <Button disableRipple size="small" color="primary" href={book.previewLink}  target="_blank" style={{'cursor' : 'pointer',  
+              'textTransform': "none", 'backgroundColor': 'transparent'  }}>
+              View on Google Books
+            </Button>
+            <hr  style={{
+              color: 'lightblue',
+              align: 'left',
+              margin: 0,
+              width: '100%'
+            }}/>
+          </CardContent>
+          
+          <IconButton
+          className={clsx(classes.expand, {
+            [classes.expandOpen]: expanded,
+          })}
+          onClick={handleExpandClick}
+          aria-expanded={expanded}
+          aria-label="show more"
+          >
+            <ExpandMoreIcon />
+          </IconButton>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <CardContent>
+              <Typography gutterBottom variant="h6" component="h2" >
+                Further Book Details
               </Typography>
               <Typography gutterBottom component="h3"   >
-              {authors}
+              • Book categories: {book.categories}
+              </Typography>
+              <Typography gutterBottom component="h3"   >
+              • Number of pages: {book.pageCount}
+              </Typography>
+              <Typography gutterBottom component="h3"   >
+              • Published date: {book.publishedDate}
+              </Typography>
+              <Typography gutterBottom component="h3"   >
+              • ISBN: {book['isbn-13']}
+              </Typography>
+              <Typography gutterBottom component="h3"   >
+              • Average rating: {book.averageRating == "" ? "" :  book.averageRating + "/5"}
+              </Typography>
+              <Typography gutterBottom component="h3"   >
+              • Number of ratings: {book.ratingsCount}
               </Typography>
               
-              <Typography gutterBottom component="h4" variant="h6" style={{"color" : "darkblue", "font-style": "italic"}} >
-              <q cite="https://www.mozilla.org/en-US/about/history/details/">{quote}</q>
-              </Typography>
-                <Typography size="small" color="primary" href={book.previewLink}  target="_blank" style={{'textTransform': 'none'}}>
-                View on Google Books
-                </Typography>
-          </CardContent>
+            </CardContent>
+          </Collapse>
         </div>
       </Card>
+
     )              
 }
 
