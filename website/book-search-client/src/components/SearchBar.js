@@ -34,8 +34,8 @@ export default function SearchBar(props) {
         author : "",
         bookTitle: "",
         genre: "",
-        yearTo : 1990,
-        yearFrom: 2021
+        yearTo : 2021,
+        yearFrom: 1990
       });
 
     const handleChange = (event) => {

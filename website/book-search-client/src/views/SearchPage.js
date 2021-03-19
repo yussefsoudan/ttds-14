@@ -1,6 +1,7 @@
 import React, {useState,useEffect} from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import BookIcon from '@material-ui/icons/Book';
+import Grid from '@material-ui/core/Grid';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -38,12 +39,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-
-let years = []
-for(var i = 1990; i< 2021; i++){
-  years.push(i)
-}
-
 export default function SearchPage() {
   const classes = useStyles();
 
@@ -70,8 +65,8 @@ type of search
       author ,
       bookTitle,
       genre,
-      yearTo,
-      yearFrom} = searchInput
+      yearFrom,
+      yearTo} = searchInput
 
 
     setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
@@ -81,7 +76,7 @@ type of search
     await getSearchResults(
       bookSearch ? "/books_from_terms_list" : "/quotes_from_terms_list",
 
-      {terms, author ,bookTitle, genre, yearTo, yearFrom}
+      {terms, author ,bookTitle, genre, yearFrom, yearTo}
       )
         .then(response => {
             // console.log("res in setAPIResponse: " + JSON.stringify(response));
@@ -125,9 +120,13 @@ type of search
         <Container className={classes.cardGrid} maxWidth="md">
           {/* Container to hold the results of the search  */}
           {state.isLoading
-          ? ( <div >
+          ? ( <Grid container 
+            // spacing={6}
+             justify="center"   
+             alignItems="center" 
+             >
             <CircularProgress />
-          </div>) 
+          </Grid>) 
           :  ( state.success && <ResultPage results={state.apiResponse.books} /> ) // provide list of results
           }
         </Container>
