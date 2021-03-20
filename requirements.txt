@@ -11,6 +11,7 @@ Flask==1.1.2
 Flask-Cors==3.0.10
 future==0.18.2
 Gutenberg==0.8.1
+gunicorn==19.0.0 
 icu==0.0.1
 idna==2.10
 importlib-metadata==3.4.0
