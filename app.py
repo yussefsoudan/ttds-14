@@ -15,7 +15,7 @@ import os
 # from query_completion.model import predict_next_word
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
-CORS(app)
+#CORS(app)
 
 # SWAGGER_URL = '/api/docs'
 # API_URL = '/static/swagger.json'
