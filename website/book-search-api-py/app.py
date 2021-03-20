@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 # from flask_swagger_ui import get_swaggerui_blueprint
 # from db.DB import get_db_instance
@@ -13,7 +13,7 @@ from ranking import *
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../book-search-client/build',static_url_path='')
 CORS(app)
 
 # SWAGGER_URL = '/api/docs'
@@ -49,8 +49,8 @@ def merge_dict_lists (l1,l2,key):
 
 
 @app.route('/')
-def home():
-    return 'Hello, World!'
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/quote_from_id', methods=['POST'])
 def get_quote_from_quote_id():
