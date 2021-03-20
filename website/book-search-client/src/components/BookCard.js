@@ -88,25 +88,38 @@ export default function BookCard({resultObj, searchTerms}) {
               
             <Typography gutterBottom component="h4" variant="h6" style={{"color" : "darkblue", "font-style": "italic"}} >
               
-                
-                <ShowMoreText
-                /* Default options */
-                lines={3}
-                more='Show more'
-                less='Show less'
-                className='content-css'
-                anchorClass='my-anchor-css-class'
-                expanded={false}
-                width={280}
-                >
-                  <q cite="https://www.mozilla.org/en-US/about/history/details/">{
-                <Highlighter
-                highlightClassName="YourHighlightClass"
-                searchWords={searchTerms}
-                autoEscape={true}
-                textToHighlight={quote}
-              />}</q>
+            {(quote.length > 300 ? 
+            <ShowMoreText
+            /* Default options */
+            lines={3}
+            more='Show more'
+            less='Show less'
+            className='content-css'
+            anchorClass='my-anchor-css-class'
+            expanded={false}
+            width={0}
+            >
+              <q cite="https://www.mozilla.org/en-US/about/history/details/">{
+            <Highlighter
+            highlightClassName="YourHighlightClass"
+            searchWords={searchTerms}
+            autoEscape={true}
+            textToHighlight={quote}
+          >
+            
+            </Highlighter>}</q>
             </ShowMoreText>
+            : 
+            <q cite="https://www.mozilla.org/en-US/about/history/details/">{
+            <Highlighter
+            highlightClassName="YourHighlightClass"
+            searchWords={searchTerms}
+            autoEscape={true}
+            textToHighlight={quote}
+            >
+            </Highlighter>}</q>
+            )}
+            
                 
               
             </Typography>
