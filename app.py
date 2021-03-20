@@ -52,7 +52,8 @@ def merge_dict_lists (l1,l2,key):
 def serve():
     print("SERVING....")
     print(str(app.static_folder))
-    return send_from_directory('website/book-search-client/build','index.html')
+    root_dir = os.path.dirname(os.getcwd())
+    return send_from_directory(os.path.join(root_dir, 'website/book-search-client/build'),'index.html')
 
 @app.route('/quote_from_id', methods=['POST'])
 def get_quote_from_quote_id():
