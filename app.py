@@ -14,7 +14,7 @@ import os
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
 
-app = Flask(__name__, static_url_path = '', static_folder = 'website/book-search-client/build')
+app = Flask(__name__, static_url_path = '', static_folder=os.path.abspath("website/book-search-client/build"))
 CORS(app)
 
 # SWAGGER_URL = '/api/docs'
@@ -52,7 +52,7 @@ def merge_dict_lists (l1,l2,key):
 @app.route('/')
 def serve():
     print("SERVING....")
-    return send_from_directory('./website/book-search-client/build','index.html')
+    return send_from_directory(app.static_folder,'index.html')
 
 @app.route('/quote_from_id', methods=['POST'])
 def get_quote_from_quote_id():
