@@ -14,8 +14,8 @@ import os
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
 
-app = Flask(__name__, static_url_path = '', static_folder=os.path.abspath("website/book-search-client/build"))
-CORS(app)
+app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build"))
+#CORS(app)
 
 # SWAGGER_URL = '/api/docs'
 # API_URL = '/static/swagger.json'
