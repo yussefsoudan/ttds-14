@@ -13,7 +13,7 @@ from ranking import *
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
 
-app = Flask(__name__, static_folder='/website/book-search-client/build/',static_url_path='')
+app = Flask(__name__, static_folder='./website/book-search-client/build',static_url_path='/')
 CORS(app)
 
 # SWAGGER_URL = '/api/docs'
