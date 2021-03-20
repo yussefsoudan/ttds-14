@@ -13,7 +13,7 @@ from ranking import *
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
 
-app = Flask(__name__, static_folder='website/book-search-client/build',static_url_path='')
+app = Flask(__name__, static_url_path = '', static_folder='website/book-search-client/build')
 CORS(app)
 
 # SWAGGER_URL = '/api/docs'
@@ -50,6 +50,7 @@ def merge_dict_lists (l1,l2,key):
 
 @app.route('/')
 def serve():
+    print("SERVING....")
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/quote_from_id', methods=['POST'])
