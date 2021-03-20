@@ -48,7 +48,7 @@ def merge_dict_lists (l1,l2,key):
     return merged
 
 
-@app.route('/', defaults={'path':''})
+@app.route('/')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')
 
