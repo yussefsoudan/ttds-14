@@ -54,6 +54,11 @@ def serve():
     print("SERVING....")
     return send_from_directory(app.static_folder,'index.html')
 
+@app.errorhandler(404)   
+def not_found(e):
+    print("404 ERROR") 
+    return send_from_directory(app.static_folder,'index.html')
+
 @app.route('/quote_from_id', methods=['POST'])
 def get_quote_from_quote_id():
     print("Request.get_json ", request.get_json())
@@ -340,4 +345,4 @@ def get_quotes_from_terms():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False, port=9000)
