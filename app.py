@@ -52,7 +52,8 @@ def merge_dict_lists (l1,l2,key):
 @app.route('/')
 def serve():
     print("SERVING....")
-    return send_from_directory(app.static_folder,'index.html')
+    return "<h1>Welcome to our server !!</h1>"
+    #return send_from_directory(app.static_folder,'index.html')
 
 
 @app.route('/quote_from_id', methods=['POST'])
