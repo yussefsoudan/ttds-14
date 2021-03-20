@@ -9,6 +9,7 @@ import re
 import time
 from MongoDB import MongoDB 
 from ranking import *
+import os
 # from ir_eval.preprocessing import preprocess
 # from api.utils.cache import ResultsCache
 # from query_completion.model import predict_next_word
@@ -51,8 +52,9 @@ def merge_dict_lists (l1,l2,key):
 @app.route('/')
 def serve():
     print("SERVING....")
-    print(str(app.static_folder))
     root_dir = os.path.dirname(os.getcwd())
+    print(str(root_dir))
+    print(str(os.path.join(root_dir, 'website/book-search-client/build')))
     return send_from_directory(os.path.join(root_dir, 'website/book-search-client/build'),'index.html')
 
 @app.route('/quote_from_id', methods=['POST'])
