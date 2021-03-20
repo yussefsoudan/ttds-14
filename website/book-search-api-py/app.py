@@ -64,8 +64,9 @@ def get_quote_from_quote_id():
 @app.route('/books_from_terms_list', methods=['POST'])
 def get_books_from_terms():
     print("request in get_books_from_terms is {}".format(request.get_json()))
-    terms = request.get_json()["terms"]
-    ranked_books = ranked_book_search({"query": terms}) # ranked_book_search returns list: [(book_id, score)]
+    details = request.get_json()
+    ranked_books = ranked_book_search({"query": details["terms"], "author": details["author"], "bookTitle": details["bookTitle"],
+                                       "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"])}) # ranked_book_search returns list: [(book_id, score)]
     print("ranked books: {}".format(ranked_books))
 
     # if we want book info apart from the book_ids we need to do another search - would this make sense?
@@ -88,14 +89,15 @@ def get_books_from_terms():
 @app.route('/quotes_from_terms_list', methods=['POST'])
 def get_quotes_from_terms():
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
-    terms = request.get_json()["terms"]
+    details = request.get_json()
 
     # TODO
     # Perform a check on the request string to check if 
     # a phrase search was requested and update the flag below
     phrase_search  = False
 
-    ranked_quotes = ranked_quote_retrieval({"query": terms}) # ranked_quote_search returns list: [(quote_id, score)]
+    ranked_quotes = ranked_quote_retrieval({"query": details["terms"], "author": details["author"], "bookTitle": details["bookTitle"],
+                                            "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"])}) # ranked_quote_search returns list: [(quote_id, score)]
     print("ranked quotes: {}".format(ranked_quotes))
 
     ranked_quote_ids = [i[0] for i in ranked_quotes]
@@ -118,7 +120,7 @@ def get_quotes_from_terms():
 
     result = {"books": query_results}
 
-    print("returning {} from get_quotes_from_terms".format(result))
+    # print("returning {} from get_quotes_from_terms".format(result))
     return result
 
 # def merge_lists(l1, l2, key):

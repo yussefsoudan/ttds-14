@@ -58,7 +58,10 @@ def ranked_book_search(query_params): #, number_results # what is the number_res
 def book_ranking_query_TFIDF(query_params):
     scored_books = {} 
     terms = query_params['query']
-  
+    relevant_books = None
+    if any([query_params['author'], query_params['bookTitle'], query_params['genre'],
+            int(query_params['yearTo']) < 2021, int(query_params['yearFrom']) > 1990]):
+        relevant_books = db.get_filtered_books_by_adv_search(query_params)
     start_time = time.time()
     for term in terms:
         print("Term for book search",term)
@@ -80,9 +83,10 @@ def book_ranking_query_TFIDF(query_params):
                 # print("Book id",book['_id'])
                 # print("Book term frequency",book['term_freq_in_book'])
                 book_id = book['_id']
-                book_term_freq = book['term_freq_in_book'] 
-                score = tfidf(book_id,book_term_freq,total_book_count)
-                scored_books[book_id] = score
+                if relevant_books is None or book_id in relevant_books:
+                    book_term_freq = book['term_freq_in_book']
+                    score = tfidf(book_id,book_term_freq,total_book_count)
+                    scored_books[book_id] = score
 
         # Time control
         if time.time() - start_time > MAX_QUERY_TIME:
@@ -108,6 +112,10 @@ def ranked_quote_retrieval(query): # , number_results, search_phrase=False
 def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     scored_quotes = {}
     terms = query_params['query']
+    relevant_books = None
+    if any([query_params['author'], query_params['bookTitle'], query_params['genre'],
+            int(query_params['yearTo']) < 2021, int(query_params['yearFrom']) > 1990]):
+        relevant_books = db.get_filtered_books_by_adv_search(query_params)
     print("Terms",terms)
 
     doc_nums = TOTAL_NUMBER_OF_SENTENCES
@@ -140,6 +148,8 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                     # return
                     # print(term_doc['books'])
                     for b,book in enumerate(term_doc['books']):
+                        if relevant_books is not None and book['_id'] not in relevant_books:
+                            continue
                         for q,quote in enumerate(book['quotes']):
                             # how many times the term appears in the quote
                             term_freq = len(quote['pos']) #TODO CURRENTLY THIS IS 0 ALL THE TIME !!!!

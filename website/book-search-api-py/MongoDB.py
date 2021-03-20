@@ -54,3 +54,17 @@ class MongoDB:
         #     { "$project": { "books.v.quotes": 0} }, 
         #     { "$project": { "books": { "$arrayToObject": "$books" } } }, 
         #     { "$match": {"term": term } } ])
+
+    def get_filtered_books_by_adv_search(self, query):
+        adv_options = {}
+        adv_options.update({"publishedDate": {'$lt': query["yearTo"], '$gte': query["yearFrom"]}})
+        if query['author']:
+            adv_options.update({'authors': query['author']})
+        if query['bookTitle']:
+            adv_options.update({'title': query['bookTitle']})
+        if query['genre']:
+            adv_options.update({'categories': query['genre']})
+        print(adv_options)
+        books = self.books.find(adv_options, {"_id": 1})
+        book_ids = list(set([book['_id'] for book in list(books)]))
+        return book_ids
