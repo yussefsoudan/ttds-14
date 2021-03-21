@@ -1,4 +1,4 @@
-import React ,{useState,useEffect} from 'react';
+import React ,{useState,useRef} from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
@@ -38,6 +38,8 @@ export default function SearchBar(props) {
         yearFrom: 1990
       });
 
+    const ref = useRef(null);
+
     const handleChange = (event) => {
         setState({...state,quote: event.target.value})
     };
@@ -50,8 +52,8 @@ export default function SearchBar(props) {
     const handleClear=(event)=> {
         event.preventDefault();
         setState({...state, quote:"",apiResponse:{},success : false})
-        // setQuote("");
-        // setSubmit(false)
+        ref.current.handleClear();
+
     }
 
     
@@ -89,7 +91,7 @@ export default function SearchBar(props) {
             </Typography>
 
             {/* Search features component  */}
-            <SearchFeatures handleChange = {handleSearchFeaturesChange}/>
+            <SearchFeatures ref= {ref} handleChange = {handleSearchFeaturesChange}/>
 
             {/* Buttons */}
             <div className={classes.heroButtons}>

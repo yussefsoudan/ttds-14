@@ -1,4 +1,5 @@
-import React ,{useState,useEffect} from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from "react";
+
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -27,7 +28,7 @@ for(var i = 1990; i< 2022; i++){
 let genres = ['Fiction','Biography & Autobiography','Juvenile Fiction','Poetry','Young Adult Fiction',
 'Philosophy','Young Adult Nonfiction','True Crime','Indic fiction (English)']
 
-export default function SearchFeatures(props) {
+const SearchFeatures = forwardRef((props,ref) => {
     const classes = useStyles();
 
     const [state, setState] = useState({
@@ -52,6 +53,18 @@ export default function SearchFeatures(props) {
         /* Pass state to parent component  */
         props.handleChange(field,value)
     };
+
+    
+    const handleClear=()=> {
+      setState({...state, author:"",bookTitle:"",genre:"",yearFrom:1990,yearTo : 2021})
+    }
+
+
+    useImperativeHandle(ref, () => {
+      return {
+        handleClear: handleClear
+      };
+    });
 
 
     return(
@@ -158,4 +171,5 @@ export default function SearchFeatures(props) {
     </>
     )
 
-}
+});
+export default SearchFeatures;
