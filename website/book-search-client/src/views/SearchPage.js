@@ -73,12 +73,11 @@ type of search
     setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
     console.log(state.isLoading)
     
-    let terms = quote.split(" ") 
     
     await getSearchResults(
-      bookSearch ? "/books_from_terms_list" : "/quotes_from_terms_list",
+      bookSearch ? "/books_search" : "/quotes_search",
 
-      {terms, author ,bookTitle, genre, yearFrom, yearTo}
+      {quote, author ,bookTitle, genre, yearFrom, yearTo}
       )
         .then(response => {
             // console.log("res in setAPIResponse: " + JSON.stringify(response));
@@ -89,7 +88,7 @@ type of search
                   books : response.books}, // book object, might contain quote as well 
                 requestError: "",
                 success:true,
-                searchTerms:quote.split(" ")
+                searchTerms:response.searchTerms
             });
         })
         .catch(errorResponse => {

@@ -13,7 +13,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
     formControl: {
-        margin: theme.spacing(1),
+        // margin: theme.spacing(1),
         minWidth: 120,
       },
   }));
@@ -23,6 +23,9 @@ let years = []
 for(var i = 1990; i< 2022; i++){
   years.push(i)
 }
+
+let genres = ['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
+'philosophy','young adult nonfiction','true crime','indic fiction (english)']
 
 export default function SearchFeatures(props) {
     const classes = useStyles();
@@ -77,12 +80,32 @@ export default function SearchFeatures(props) {
              value={state.author}
              onChange={e => handleChange('author', e.target.value)} />  
             </Grid>
-           <Grid container item xs={4} >
+
+           {/* <Grid container item xs={4} >
              <TextField 
              id="standard-basic" label="Genre" 
              value={state.genre}
              onChange={e => handleChange('genre', e.target.value)} />  
-            </Grid>            
+           </Grid>    */}
+
+           <Grid container item xs={4}>
+             <FormControl className={classes.formControl}>
+                 <InputLabel id="genre">Genre</InputLabel>
+                 <Select
+                   labelId="genre-selcet"
+                   id="genre-select"
+
+                   value={state.genre}
+                   onChange={e =>handleChange('genre', e.target.value)}
+                 >
+                   {genres.map((genre) => (
+                               <MenuItem key={genre} value={genre} >
+                                 {genre}
+                               </MenuItem>
+                             ))}
+                 </Select>
+             </FormControl>
+           </Grid>        
          </Grid>
          
          {/* Second row of advance Search */}

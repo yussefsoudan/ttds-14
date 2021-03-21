@@ -143,7 +143,7 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                     # number of documents containing the term
                     # documents in this case are the quotes
                     doc_nums_term = term_doc['term_freq'] 
-                    print("Document frequency",doc_nums_term )
+                    # print("Document frequency",doc_nums_term )
 
                     # return
                     # print(term_doc['books'])
@@ -157,8 +157,8 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                             dl = quote['len']
                             quote_id = quote['_id']
 
-                            print("Term frequency",term_freq)
-                            print("Document length of current quote",dl)
+                            # print("Term frequency",term_freq)
+                            # print("Document length of current quote",dl)
                             score = score_BM25(doc_nums, doc_nums_term, term_freq, k1=1.2, b=0.75, dl=dl, avgdl=4.82) if dl < 100000 else 0
                             if score > 0:
                                 scored_quotes[quote_id] = score

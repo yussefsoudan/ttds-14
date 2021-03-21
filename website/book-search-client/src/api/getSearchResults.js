@@ -4,7 +4,7 @@ const baseURL = 'http://127.0.0.1:5000';
 const getSearchResults = async(endpoint, params) => {
     console.log("request endpoint",baseURL + endpoint)
     return axios.post(baseURL + endpoint,{
-        terms: params.terms,
+        quote: params.quote,
         author: params.author ,
         bookTitle: params.bookTitle, 
         genre: params.genre, 
