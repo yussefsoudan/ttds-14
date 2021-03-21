@@ -105,12 +105,41 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
 
+
+def get_common_quotes(scored_quotes_per_term):
+    common_quotes = set()
+    scored_quotes = {}
+    for i, (term,quote_scores) in enumerate(scored_quotes_per_term.items()):
+        if i ==0:
+            common_quotes = set(quote_scores.keys())
+        else:
+            # Get the intersection of all quote_ids between the terms of the query
+            common_quotes = common_quotes.intersection(set(quote_scores.keys()))
+
+    print("COmmon quotes",common_quotes)
+    for term, quote_scores in scored_quotes_per_term.items():
+        for quote_id, score in quote_scores.items():
+            if quote_id in common_quotes:
+                scored_quotes[quote_id] = score if quote_id not in scored_quotes else scored_quotes[quote_id] + score
+
+
+    print("scored quotes",scored_quotes)
+    return scored_quotes
+
+
+
+
+
+
+
+
 def ranked_quote_retrieval(query): # , number_results, search_phrase=False
     tracker = ranking_query_BM25(query, batch_size)
     return tracker # result_ids
 
 def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     scored_quotes = {}
+    scored_quotes_per_term = {} # term -> {q_id:score}
     terms = query_params['query']
     relevant_books = None
     if any([query_params['author'], query_params['bookTitle'], query_params['genre'],
@@ -121,6 +150,7 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     doc_nums = TOTAL_NUMBER_OF_SENTENCES
     total_start_time = time.time()
     for term in terms:
+        scored_quotes_per_term[term] = {}
         print("Term:",term)
         term_start_time = time.time()
         try:
@@ -161,11 +191,14 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                             # print("Document length of current quote",dl)
                             score = score_BM25(doc_nums, doc_nums_term, term_freq, k1=1.2, b=0.75, dl=dl, avgdl=4.82) if dl < 100000 else 0
                             if score > 0:
+                                scored_quotes_per_term[term][quote_id] = score
                                 scored_quotes[quote_id] = score
                             if time.time() - total_start_time > MAX_QUERY_TIME:
                                 return Counter(scored_quotes).most_common(20)
         except:
             pass
+    
+    scored_quotes = get_common_quotes(scored_quotes_per_term)
 
     return Counter(scored_quotes).most_common(20)
 
