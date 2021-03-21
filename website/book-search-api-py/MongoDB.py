@@ -1,10 +1,11 @@
 from pymongo import MongoClient
 from typing import List
+import time
 
 class MongoDB:
     def __init__(self):
         super().__init__()
-        client = MongoClient("mongodb://localhost:27017/")
+        client = MongoClient("mongodb://188.166.173.191:27017") # mongodb://localhost:27017/
         db = client["TTDS"]
         self.books = db["books"]
         self.quotes = db["quotes"]
@@ -34,14 +35,32 @@ class MongoDB:
         quotes = [quote["quote"] for quote in quotes_obj] 
         return quotes
 
-    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000):
-        docs_for_term = self.inverted_index.find({"_id": term})
+    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000, sort: bool = False):
+        docs_for_term = self.inverted_index.find({"term": term}, {"_id": 0})
+        if sort:
+            docs_for_term = docs_for_term.sort('books.0._id')
         docs_for_term = docs_for_term.skip(skip).limit(limit)
         return docs_for_term
     
-    def get_books_by_term(self, term: str):
-        return self.inverted_index.aggregate([
-            { "$project": { "books": { "$objectToArray": "$books" } } },
-            { "$project": { "books.v.quotes": 0} }, 
-            { "$project": { "books": { "$arrayToObject": "$books" } } }, 
-            { "$match": {"_id": term } } ])
+    # def get_books_by_term(self, term: str):
+    #     return self.inverted_index.aggregate([
+    #         { "$project": { "books": { "$objectToArray": "$books" } } },
+    #         { "$project": { "books.v.quotes": 0} }, 
+    #         { "$project": { "books": { "$arrayToObject": "$books" } } }, 
+    #         { "$match": {"_id": term } } ])
+
+
+if __name__ == '__main__':
+    db = MongoDB()
+    cursor = db.get_docs_by_term("grand", 0, sort=True)
+    print(list(next(cursor, None)))
+    # start = time.time()
+    # for (index, found) in enumerate(list(db.get_docs_by_term("grand", 0, sort=True))):
+    #     print("element no. {}".format(index))
+    #     books = found["books"]
+    #     book_ids = [i['_id'] for i in books]
+    #     print("number of books here: {}".format(len(books)))
+    #     print("this book_ids list has minimum {} and maximum {}".format(min(book_ids), max(book_ids)))
+    #     print()
+
+    # print("time taken: {}".format(time.time() - start))

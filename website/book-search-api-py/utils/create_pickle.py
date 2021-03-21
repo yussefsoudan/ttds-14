@@ -1,9 +1,8 @@
-"""
-This script computes the average processed (stop words removed) sentence length based on the sentences collection.
-"""
 import pickle
+import sys, os
+import sys
+sys.path.append('../')
 from MongoDB import MongoDB
-# from pymongo.operations import UpdateMany
 from collections import defaultdict
 import pprint
 import nltk 
@@ -12,53 +11,39 @@ from nltk.corpus import stopwords
 nltk.download('stopwords')
 from nltk.stem.porter import *
 import time
-# from ir_eval.preprocessing import preprocess
-
-# START_COUNT = 57600000
 
 mongo = MongoDB()
-# sentences = mongo.sentences
 quotes = mongo.quotes
-# movies = mongo.movies
-# books = mongo.books
-# LIMIT = 100000
 
-total_counted = 0       # START_COUNT
 book_term_counts = defaultdict(lambda: 0)
-# movie_term_counts = pickle.load(open('movie_term_counts.p', 'rb'))
-# movie_id = list(movie_term_counts.keys())[-1]
-# movie_term_count = movie_term_counts[movie_id]
 
-# initialisation
-book_id = "b0" 
-book_term_count = 0
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 
 start_time = time.time()
-try:
-    ss = quotes.find({}, {"quote": 1, "book_id": 1, "_id": 0}) # , skip=total_counted
-    if ss is not None:
-        for s in ss:
-            if s['book_id'] != book_id:
-                # Add / Update the term counts of the book_id to the dictionary
-                if book_id in book_term_counts:
-                    print("adding to book with id {} count {}".format(book_id, book_term_count))
-                    book_term_counts[book_id] += book_term_count
-                else:
-                    print("setting book with id {} as count {}".format(book_id, book_term_count))
-                    book_term_counts[book_id] = book_term_count
-                book_id = s['book_id']
-                book_term_count = 0
+all_quotes = quotes.find({}, {"quote": 1, "book_id": 1, "_id": 0})
+if all_quotes is not None:
+    previous_book_id = 1
+    book_term_count = 0
 
-            terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', s['quote']) if not token.lower() in stopSet]
-            book_term_count += len(terms)
-            total_counted += 1
-        book_term_counts[book_id] = book_term_count
-        # if total_counted % LIMIT != 0:
-        #     break
-except:
-    pass
+    for quote in all_quotes:
+        # if current book id is not what was previously processed, store what has been counted for previous book id
+        if quote['book_id'] != previous_book_id:
+            # add / update the term counts of the previous book id to the dictionary
+            if previous_book_id in book_term_counts:
+                print("adding to book with id {} count {}".format(previous_book_id, book_term_count))
+                book_term_counts[previous_book_id] += book_term_count
+            else:
+                print("setting book with id {} as count {}".format(previous_book_id, book_term_count))
+                book_term_counts[previous_book_id] = book_term_count
+            previous_book_id = quote['book_id']
+            book_term_count = 0
+        
+        # get preprocessed terms of the quote and add it to the current book's count
+        terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+', quote['quote']) if not token.lower() in stopSet]
+        book_term_count += len(terms)
+
+    book_term_counts[previous_book_id] = book_term_count
 
 print("final book term counts: {}".format(dict(book_term_counts)))
 pickle.dump(dict(book_term_counts), open(f'book_term_counts.p', 'wb'))
