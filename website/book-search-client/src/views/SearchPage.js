@@ -48,7 +48,8 @@ export default function SearchPage() {
     } , 
     searchTerms : [],
     isLoading : false,
-    requestError:"",
+    errorOccur:false,
+    errorMsg:"",
     success: false
   });
 
@@ -95,7 +96,9 @@ type of search
             setState({
                 ...state,
                 isLoading: false,
-                requestError: errorResponse,
+                success : false,
+                errorOccur: true,
+                errorMsg: errorResponse,
                 apiResponse: {
                   quote:""
                 }
@@ -131,6 +134,7 @@ type of search
           </Grid>) 
           :  ( state.success && <ResultPage results={state.apiResponse.books} searchTerms={state.searchTerms} /> ) // provide list of results
           }
+          {state.errorOccur && <Typography variant="h6" align='center' color='error' className="error-message">{`Your request has timed out. The error message is: ${state.errorMsg}`}</Typography> }
         </Container>
       </main>
 
