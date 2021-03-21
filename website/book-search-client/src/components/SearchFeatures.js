@@ -24,8 +24,8 @@ for(var i = 1990; i< 2022; i++){
   years.push(i)
 }
 
-let genres = ['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
-'philosophy','young adult nonfiction','true crime','indic fiction (english)']
+let genres = ['Fiction','Biography & Autobiography','Juvenile Fiction','Poetry','Young Adult Fiction',
+'Philosophy','Young Adult Nonfiction','True Crime','Indic fiction (English)']
 
 export default function SearchFeatures(props) {
     const classes = useStyles();
