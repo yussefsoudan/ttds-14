@@ -99,7 +99,7 @@ def book_ranking_query_TFIDF(query_params):
 # ------------------- Quote search and ranking --------------------------
 # -----------------------------------------------------------------------
 
-MAX_INDEX_SPLITS = 5  # maximum number of different entries in the inverted_index with the same term
+MAX_INDEX_SPLITS = 200  # maximum number of different entries in the inverted_index with the same term
 TOTAL_NUMBER_OF_SENTENCES = 50630265  #TODO NEEDS UPDATE
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
@@ -125,12 +125,6 @@ def get_common_quotes(scored_quotes_per_term):
 
     print("scored quotes",scored_quotes)
     return scored_quotes
-
-
-
-
-
-
 
 
 def ranked_quote_retrieval(query): # , number_results, search_phrase=False
