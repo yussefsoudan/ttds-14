@@ -6,13 +6,12 @@ import os
 from helperFunctions import findISBN 
 from langdetect import detect
 
-directory = r"../books"
+directory = r"/root/books"
 folders = ['0_Other', '0', '1', '2','3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
 nonEnglishBooks = 0
 nonISBNBooks = 0
 emptyBooks = 0
-booksDeleted = open("booksDeleted.txt", "w")
 
 for folder in folders:
     subdir = directory + '/' + folder
@@ -29,17 +28,14 @@ for folder in folders:
                     emptyBooks += 1
                     os.remove(filepath)
                     reason = "Empty"
-                    booksDeleted.write(folder + "/" + filename + "---" + reason + "\n")
                 elif detect(text) != "en": 
                     nonEnglishBooks += 1
                     os.remove(filepath)
                     reason = "Non-English"
-                    booksDeleted.write(folder + "/" + filename + "---" + reason + "\n")
                 elif findISBN(text) == False:
                     nonISBNBooks += 1
                     os.remove(filepath)
                     reason = "No-ISBN"
-                    booksDeleted.write(folder + "/" + filename + "---" + reason + "\n")
                 f.close()
                 
             except Exception as ex: 

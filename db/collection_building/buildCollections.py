@@ -18,7 +18,7 @@ from tqdm import tqdm # progress bar
 
 # Possible addition: author name + book name? During Author section, those might be mentioned
 bad_chars = set(['#','<','>','*','_',':','\n','@'])
-bad_words = set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by',
+bad_words = set(['copy right','copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by',
             'publisher','manuscript','editor','coincidental','reproduce','special thank'])
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
@@ -33,7 +33,7 @@ def buildCollections():
     index = 0
     bookID = 0
     quoteID = 0
-    folders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    folders = ['0_Other','0','1','2','3','4','5','6','7','8','9','A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     directory = "/root/books"
 
     for folder in folders:
