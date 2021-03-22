@@ -80,7 +80,7 @@ def buildCollections():
                         quotes_objects = []
                         gc.collect()
 
-                booksCollec.update_one({{"_id" : bookID}, {"$set" : {"terms_count" : terms_count}})
+                booksCollec.update_one({"_id" : bookID}, {"$set" : {"terms_count" : terms_count}})
                 print("Finished book: ", bookID)
 
     print("Books removed for having a faulty ISBN or category: " + str(booksWithFaultyISBNOrCateg))
