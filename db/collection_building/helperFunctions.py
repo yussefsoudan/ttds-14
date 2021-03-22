@@ -16,7 +16,7 @@ def getBookMetadata(ISBN, title, author):
         'publishedDate' : '',
         'previewLink' : '',
         'pageCount' : '',
-        'averageRating' : ''
+        'averageRating' : '',
         'ratingsCount' : ''}
 
     endpoint = URL + ISBN
