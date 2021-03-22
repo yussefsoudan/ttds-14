@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 import nltk 
 nltk.download('stopwords')
 from nltk.stem.porter import *
+from spellchecker import SpellChecker
 
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
@@ -18,6 +19,7 @@ CORS(app)
 db = MongoDB()
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
+spell = SpellChecker()
 
 def merge_dict_lists (l1,l2,key):
     merged = l1
@@ -37,6 +39,24 @@ def serve():
     print("SERVING....")
     return send_from_directory(app.static_folder,'index.html')
 
+
+@app.route('/spellcheck', methods=['POST'])
+def get_most_likely_terms():
+    print("Spell-checking: ", request.get_json())
+    search_text = request.get_json()["search_text"]
+    terms = re.findall(r'\w+', search_text)
+    correction_exists = False
+    corrected_text = ""
+    for term in terms:
+        correction = spell.correction(term)
+        if (correction != term):
+            correction_exists = True
+            corrected_text = search_text.replace(term, correction)
+    
+    result = {}
+    result['corrected_text'] = corrected_text
+    result['correction_exists'] = correction_exists
+    return result
 
 @app.route('/quote_from_id', methods=['POST'])
 def get_quote_from_quote_id():
