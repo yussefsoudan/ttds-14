@@ -46,5 +46,4 @@ for folder in folders:
         else:
             continue
 
-booksDeleted.close()
 print("Files deleted: " + str(nonEnglishBooks)  + " non English books, " + str(nonISBNBooks) + " non-ISBN books, and " + str(emptyBooks) + " empty books.")
