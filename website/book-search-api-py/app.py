@@ -93,19 +93,24 @@ def get_quotes_from_terms():
     # TODO
     # Perform a check on the request string to check if 
     # a phrase search was requested and update the flag below
-    phrase_search  = False
+    # if any of the terms has " character => phrase search is true
+    phrase_search = True if any('"' in term for term in terms) else False
 
-    ranked_quotes = ranked_quote_retrieval({"query": terms}) # ranked_quote_search returns list: [(quote_id, score)]
-    print("ranked quotes: {}".format(ranked_quotes))
+    if phrase_search:
+        terms = [term.strip('"') for term in terms]
+        ranked_quote_ids = list(quote_phrase_search({"query": terms})) # phrase search returns set(quote_ids)
+    else:
+        ranked_quotes = ranked_quote_retrieval({"query": terms}) # ranked_quote_search returns list: [(quote_id, score)]
+        print("ranked quotes: {}".format(ranked_quotes))
+        ranked_quote_ids = [i[0] for i in ranked_quotes]
 
-    ranked_quote_ids = [i[0] for i in ranked_quotes]
     quotes_results = db.get_quotes_by_quote_id_list(ranked_quote_ids)
-    
     for i, dic_quote in enumerate(quotes_results):
         dic_quote['quote_id'] = dic_quote.pop('_id')
-    
+
     # Get book Details for book_ids
     book_ids = ([dic['book_id'] for dic in quotes_results])
+
     books = db.get_books_by_book_id_list(book_ids)
     for dic_book in books:
         if dic_book is not None and 'movie_id' not in dic_book:  # movie_id may already be added if different quotes share the same movie!
@@ -114,6 +119,7 @@ def get_quotes_from_terms():
     # Merge book Details with Quotes
     # Appending the book details to the quotes object
     query_results = merge_dict_lists(quotes_results, books, 'book_id')
+    print("query_results: {}".format(query_results))
 
 
     result = {"books": query_results}

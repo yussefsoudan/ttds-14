@@ -166,6 +166,9 @@ def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
 
 # ------------------- Phrase search and ranking --------------------------
 # ------------------------------------------------------------------------
+def quote_phrase_search(query):
+    tracker = phrase_search(query)
+    return tracker
 
 def phrase_search(query_params): 
     results = set()
@@ -255,7 +258,7 @@ def phrase_search(query_params):
 
                     # this checks if it's a phrase occurring in the common book + common quote
                     if i in pos_check:
-                        intermediate.add((doc_1['books'][book_pos_1]['_id'], doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
+                        intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
                     
                     quote_pos_1 += 1
                     # if quotes array exceeded -> move to next book in books array -> if books array exceeded
