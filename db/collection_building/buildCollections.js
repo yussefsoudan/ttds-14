@@ -4,6 +4,7 @@ const badChars = new Set(['#','<','>','*','_',':','\n','@']);
 const badWords = new Set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by','publisher','manuscript','editor','coincidental','reproduce','special thank']);
 const MongoClient = require('mongodb').MongoClient;
 const url = "mongodb://localhost";
+const stemmer = require('porter-stemmer').stemmer;
 
 let buildCollections = async () => {
     let bookID = 0;
@@ -11,6 +12,8 @@ let buildCollections = async () => {
     let directory = "/root/books";
     let folders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     let booksDeleted = 0;
+    let text = await fs.readFile('./nltk_stop_words.txt', 'utf8'); 
+    let stopWords = new Set(text.split("\n"));
 
     let client = await MongoClient.connect(url, { useUnifiedTopology : true });
     try {
@@ -41,10 +44,8 @@ let buildCollections = async () => {
                     // Insert book
                     bookMetadata["_id"] = bookID;
                     bookID += 1;
-                    booksCollec.insertOne(bookMetadata, function(err, res) {
-                        if (err) console.log("Error inserting book: ", err, " in book ", filename);
-                        //console.log("Book ", idx, " inserted out of ", files.length);
-                    })
+
+                    let terms_count = 0;
 
                     // Insert quotes 
                     let quotes = getQuotes(text);
@@ -56,7 +57,15 @@ let buildCollections = async () => {
                         quotesCollec.insertOne(quoteDoc, function(err, res) {
                             if (err) console.log("Error inserting quote: ", err, " in book ", filename);
                         });
+                        let terms = await preprocess(quote, stopWords);
+                        terms_count += terms.length;
                     }
+
+                    bookMetadata['terms_count'] = terms_count;
+                    booksCollec.insertOne(bookMetadata, function(err, res) {
+                        if (err) console.log("Error inserting book: ", err, " in book ", filename);
+                        //console.log("Book ", idx, " inserted out of ", files.length);
+                    })
                     
                 } else {
                     // The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
@@ -83,9 +92,21 @@ let buildCollections = async () => {
 
 };
 
+let preprocess = async (quote, stopWords) => {
+    let final = [];
+    let tokens = quote.match(/\w+/gm);
+    for (i in tokens) {
+        let token = tokens[i].toLowerCase();
+        if (!stopWords.has(token)) {
+            final.push(stemmer(token));
+        }
+    }
+    return final;
+}
+
 let getBookMetadata = async (ISBN, title, author, max_tries) => {
     let URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
-    let APIKey = "&key=AIzaSyDxE-bNMbTHHWaxU9bW78hV3qGPFFW-qZM";
+    //let APIKey = "&key=AIzaSyDxE-bNMbTHHWaxU9bW78hV3qGPFFW-qZM";
     ISBN = ISBN.replace(/\s|:|-/gi, '');
     let metadata = {'title' : title, 
     'authors' : [author], 
@@ -96,7 +117,10 @@ let getBookMetadata = async (ISBN, title, author, max_tries) => {
     'publishedDate' : '',
     'previewLink' : '',
     'pageCount' : '',
-    'averageRating' : ''}; 
+    'averageRating' : '',
+    'ratingsCount' : '',
+    'terms_count' : ''}; 
+
     let endpoint = URL + ISBN //+ APIKey;
     let accepted_cats = new Set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
                      'philosophy','young adult nonfiction','true crime','indic fiction (english)']);
@@ -172,6 +196,12 @@ let getBookMetadata = async (ISBN, title, author, max_tries) => {
                 metadata['averageRating'] = data['items'][item_idx]['volumeInfo']['averageRating'] || '';
             } catch(err) {
                 metadata['averageRating'] = '';
+            }
+
+            try {
+                metadata['ratingsCount'] = data['items'][item_idx]['volumeInfo']['ratingsCount'] || '';
+            } catch(err) {
+                metadata['ratingsCount'] = '';
             }
             
             if (metadata['categories'].length > 0) {
