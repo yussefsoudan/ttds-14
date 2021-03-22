@@ -16,7 +16,8 @@ def getBookMetadata(ISBN, title, author):
         'publishedDate' : '',
         'previewLink' : '',
         'pageCount' : '',
-        'averageRating' : ''}
+        'averageRating' : ''
+        'ratingsCount' : ''}
 
     endpoint = URL + ISBN
     accepted_cats = set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
@@ -119,7 +120,9 @@ def getBookMetadata(ISBN, title, author):
             # Rating might not exist
             try:
                 averageRating = data['items'][item_idx]['volumeInfo']['averageRating']
+                ratingsCount = data['items'][item_idx]['volumeInfo']['ratingsCount']
                 metadata['averageRating'] = averageRating
+                metadata['ratingsCount'] = ratingsCount
             except:
                 #print("No rating found")
                 pass
@@ -166,8 +169,3 @@ def findISBN(text):
         return match
     return False
 
-
-
-#print(getBookMetadata('978-1-84749-308-8', '', ''))
-# text = open('text.txt').read()
-# print(findISBN(text))

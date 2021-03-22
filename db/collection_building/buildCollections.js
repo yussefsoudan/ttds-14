@@ -6,8 +6,8 @@ const MongoClient = require('mongodb').MongoClient;
 const url = "mongodb://localhost";
 
 let buildCollections = async () => {
-    let bookID = 1212;
-    let quoteID = 1625485;
+    let bookID = 0;
+    let quoteID = 0;
     let directory = "/root/books";
     let folders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     let booksDeleted = 0;

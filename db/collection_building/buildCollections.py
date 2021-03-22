@@ -6,7 +6,11 @@ import time
 import pymongo 
 import os 
 import re
+import gc
 import nltk
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+from nltk.stem.porter import *
 from helperFunctions import findISBN 
 from nltk import sent_tokenize
 from helperFunctions import getBookMetadata
@@ -16,6 +20,8 @@ from tqdm import tqdm # progress bar
 bad_chars = set(['#','<','>','*','_',':','\n','@'])
 bad_words = set(['copyright','.com','www','copyediting','of fiction','e-book','all rights reserved','published by',
             'publisher','manuscript','editor','coincidental','reproduce','special thank'])
+stopSet = set(stopwords.words('english'))
+stemmer = PorterStemmer()
 
 def buildCollections():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -27,10 +33,8 @@ def buildCollections():
     index = 0
     bookID = 0
     quoteID = 0
-
-    directory = r"/Users/yussefsoudan/Studies/Uni/year-4-cs/TTDS/CW3/playground"
-    #directory = r"C:/Users/Erodotos/Desktop/Year 4/TTDS/group-project/Book3"
-    folders = ['7']
+    folders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    directory = "/root/books"
 
     for folder in folders:
         subdir = directory + '/' + folder
@@ -47,23 +51,37 @@ def buildCollections():
                 bookMetadata = getBookMetadata(ISBN, title, author)
 
                 # The ISBN does NOT match the Google ISBNs or chosen categories, remove book.
-                if bookMetadata == False:
+                if bookMetadata == False or bookMetadata == None:
                     booksWithFaultyISBNOrCateg += 1
                     os.remove(filepath)
                     continue 
 
                 # Insert book
-                bookMetadata["_id"] = "b" + str(bookID)
+                bookMetadata["_id"] =  bookID
                 bookID += 1
                 b = booksCollec.insert_one(bookMetadata)
+                terms_count = 0
                 
                 # Insert quotes
                 quotes = getQuotes(text)
+                quotes_objects = []
+                counter = 1000
                 for quote in quotes:
                     quoteDoc = {"book_id" : b.inserted_id, "quote" : quote}
-                    quoteDoc["_id"] = "q" + str(quoteID)
+                    quoteDoc["_id"] = quoteID
                     quoteID += 1
-                    q = quotesCollec.insert_one(quoteDoc)
+                    quotes_objects.append(quoteDoc)
+                    terms_count += len([stemmer.stem(token.lower()) for token in re.findall(r'\w+', quote) if not token.lower() in stopSet])
+                    counter -= 1
+                    if counter == 0:
+                        quotesCollec.insert_many(quotes_objects)
+                        counter = 1000
+                        quotes_objects.clear()
+                        quotes_objects = []
+                        gc.collect()
+
+                booksCollec.update_one({{"_id" : bookID}, {"$set" : {"terms_count"} : terms_count}})
+                print("Finished book: ", bookID)
 
     print("Books removed for having a faulty ISBN or category: " + str(booksWithFaultyISBNOrCateg))
     client.close()
