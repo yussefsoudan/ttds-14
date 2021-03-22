@@ -5,9 +5,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Button from '@material-ui/core/Button';
-
 import SearchFeatures from "./SearchFeatures.js";
-
+const axios = require('axios');
 
 const useStyles = makeStyles((theme) => ({
 
@@ -35,13 +34,29 @@ export default function SearchBar(props) {
         bookTitle: "",
         genre: "",
         yearTo : 2021,
-        yearFrom: 1990
-      });
+        yearFrom: 1990,
+        correction: ""
+    });
+
 
     const ref = useRef(null);
 
+
     const handleChange = (event) => {
-        setState({...state,quote: event.target.value})
+      setState({...state,quote: event.target.value})
+      // Spellcheck
+      axios.post('http://127.0.0.1:5000' + '/spellcheck',{
+        search_text: event.target.value
+      }).then(res => {
+      if (res['data']['correction_exists']) {
+        setState({...state,correction: res['data']['corrected_text'], quote: event.target.value})
+      } else {
+        setState({...state,correction: "", quote: event.target.value})
+      }
+      }).catch(err => {
+      console.log("ERROR RETRIEVING CORRECTION: " + err)
+      });
+        
     };
     
     const handleSearchFeaturesChange = (param,value) =>{
@@ -56,6 +71,10 @@ export default function SearchBar(props) {
 
     }
 
+    const handleSpellCorrect= () => {
+      setState({...state, quote: state.correction, correction: ""})
+    }
+
     
     const handleSubmit = () =>{
         // Validate input 
@@ -64,6 +83,7 @@ export default function SearchBar(props) {
         // findQuoteRequest();
 
         props.handleRequest(state)
+        
     }
 
     
@@ -86,7 +106,11 @@ export default function SearchBar(props) {
             onChange={handleChange}
             ></TextField>
 
-            <Typography variant="h5" align="center" color="textSecondary" paragraph>
+            <Typography variant="h7" align="center" color="textSecondary" paragraph style={{"fontStyle" : "italic", "cursor" : "pointer"}} onClick={handleSpellCorrect}>
+              {state.correction.length != 0 ? "Did you mean '" + state.correction + "'?": ""}
+            </Typography>
+
+            <Typography variant="h5" align="center" color="textSecondary" paragraph value={"hi"}>
               Try to type something short and leading about the book you are looking for
             </Typography>
 
