@@ -66,8 +66,11 @@ def getBookMetadata(ISBN, title, author):
                     metadata['isbn-13'] = isbn13
                     break
             
-            title = data['items'][item_idx]['volumeInfo']['title']
-            metadata['title'] = title
+            try:
+                title = data['items'][item_idx]['volumeInfo']['title']
+                metadata['title'] = title
+            except: 
+                pass
             
             # Author tag might not exist
             try:
