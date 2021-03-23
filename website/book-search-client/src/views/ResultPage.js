@@ -6,6 +6,7 @@ import Pagination from '@material-ui/lab/Pagination';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
 
 
 //  props will be a list of book objects
@@ -75,15 +76,13 @@ export default function ResultPage({results, searchTerms}) {
             xs={8}
           >
 
-            
+            {length> state.perPageResults ? ( 
             <Grid container spacing={3}>  
               <Grid item xs={8} >
-                {length > state.perPageResults &&
                   <Pagination 
                   count={count} 
                   page={state.offset} 
                   onChange={(e, offset) => handlePaginationClick(offset)} />
-                }
               </Grid>
 
               <Grid item xs={2} >
@@ -93,7 +92,11 @@ export default function ResultPage({results, searchTerms}) {
                 labelPlacement="End"
                 />
               </Grid>
-            </Grid>
+            </Grid>)
+            : (
+              <Typography variant="h6" align='center' color='primary' className="error-message">{"It seems there were no results for your query."}</Typography> 
+            )
+          }
 
 
             { state.data.slice(
