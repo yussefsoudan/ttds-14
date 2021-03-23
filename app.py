@@ -58,6 +58,15 @@ def get_most_likely_terms():
     result['correction_exists'] = correction_exists
     return result
 
+
+@app.route('/get_all_authors', methods=['POST'])
+def get_all_authors():
+    print("Finding all author names")
+    results  = {"authors":[]} # format [ {"name": <author-name>},...{}]
+    return results
+
+
+
 @app.route('/quote_from_id', methods=['POST'])
 def get_quote_from_quote_id():
     print("Request.get_json ", request.get_json())
