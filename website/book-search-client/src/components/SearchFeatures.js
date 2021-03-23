@@ -110,6 +110,8 @@ const SearchFeatures = forwardRef((props,ref) => {
               getOptionLabel={(author) => author.name}
               style={{ width: 300 }}
               renderInput={(params) => <TextField {...params} label="Author" />}
+              onChange={(event, newValue) => handleChange('author', newValue)}  
+
             />
             </Grid>
             
