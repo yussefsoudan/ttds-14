@@ -13,9 +13,9 @@ const getSearchResults = async(endpoint, params) => {
         responseType: 'json'
     })
     .then(response => {
-        // console.log("res in callAPI is: " + JSON.stringify(response));
-        // return response.data;
-        throw Error("This is an error message")
+        console.log("res in callAPI is: " + JSON.stringify(response));
+        return response.data;
+        // throw Error("This is an error message")
       })
     .catch(error => {
         throw error;
