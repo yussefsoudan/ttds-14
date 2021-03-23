@@ -14,7 +14,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import ResultPage from "./ResultPage.js"
 import getSearchResults from "../api/getSearchResults.js";
 import SearchBar from "../components/SearchBar.js";
-
+import getAllAuthors from "../api/getAllAuthors.js"
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -38,6 +38,12 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+let dummy_authors = [{name:"Janish"}
+,{name:"Harry poppins"},
+{name:"Anna michin"},
+{name:"Mike"},
+{name:"Joah noah"},
+{name:"Michelin"}]
 
 export default function SearchPage() {
   const classes = useStyles();
@@ -50,10 +56,36 @@ export default function SearchPage() {
     isLoading : false,
     errorOccur:false,
     errorMsg:"",
-    success: false
+    success: false,
+    authors : []
   });
 
   console.log("Search page render")
+
+
+  // Use effect hook that will be triggered once, on render, to fetch the Author names
+  useEffect(() => {
+    console.log("Hook to get author names")
+      const getAllAuthorsRequest = async () => {
+        // setState({ ...state, connectDB: { ...state.connectDB, isLoading: true } });
+        await getAllAuthors()
+          .then(response => {
+            console.log(response);
+            setState({
+              ...state,
+              authors: dummy_authors // to be replaced with response
+            });
+          })
+          .catch(errorResponse => {
+            console.log("Error response",errorResponse)
+          });
+      };
+  
+      getAllAuthorsRequest();
+      
+    }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
+
+
 
 /* 
 Single handleRequest function that will trigger the proper API function based on the
@@ -119,7 +151,7 @@ type of search
       </AppBar> */}
       <main>
         {/* Search bar including the Advance search options */}
-        <SearchBar handleRequest={handleRequest}/>
+        <SearchBar handleRequest={handleRequest}  authors={state.authors}  />
 
         {/* Results container */}
         <Container className={classes.cardGrid} maxWidth="md">

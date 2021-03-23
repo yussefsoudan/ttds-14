@@ -9,7 +9,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
-
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -25,11 +25,20 @@ for(var i = 1990; i< 2022; i++){
   years.push(i)
 }
 
+
+// let authors = [{name:"Janish"}
+// ,{name:"Harry poppins"},
+// {name:"Anna michin"},
+// {name:"Mike"},
+// {name:"Joah noah"}]
+
 let genres = ['Fiction','Biography & Autobiography','Juvenile Fiction','Poetry','Young Adult Fiction',
 'Philosophy','Young Adult Nonfiction','True Crime','Indic fiction (English)']
 
 const SearchFeatures = forwardRef((props,ref) => {
     const classes = useStyles();
+
+    const authors = props.authors;
 
     const [state, setState] = useState({
           bookSearch : false,
@@ -87,12 +96,23 @@ const SearchFeatures = forwardRef((props,ref) => {
              value={state.bookTitle}
              onChange={e => handleChange('bookTitle', e.target.value)} /> 
             </Grid>
+{/*             
            <Grid container item xs={4} >
              <TextField 
              id="standard-basic" label="Author" 
              value={state.author}
              onChange={e => handleChange('author', e.target.value)} />  
+            </Grid> */}
+            <Grid container item xs={4} >
+            <Autocomplete
+              id="author-select"
+              options={authors}
+              getOptionLabel={(author) => author.name}
+              style={{ width: 300 }}
+              renderInput={(params) => <TextField {...params} label="Author" />}
+            />
             </Grid>
+            
 
            {/* <Grid container item xs={4} >
              <TextField 
