@@ -19,7 +19,7 @@ def build_index(): # each term will have 200 docs max
     loadSize = 1000
     tempIndex = dict()
     
-    for r in range(0, 57000):
+    for r in range(10225, 57000):
         lowerLimit = r * loadSize
         upperLimit = lowerLimit + loadSize
         quotes = quotesCollec.find({"_id" : {"$lt" : upperLimit, "$gte" : lowerLimit}})
