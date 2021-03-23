@@ -18,6 +18,7 @@ export default function ResultPage({results, searchTerms}) {
           offset : 1,
           perPageResults: 10,
           sort: false
+
         });
 
         console.log("Result page rendered")
@@ -76,14 +77,16 @@ export default function ResultPage({results, searchTerms}) {
             xs={8}
           >
 
-            {length> state.perPageResults ? ( 
+            {length> 0 && ( 
             <Grid container spacing={3}>  
+            {length> state.perPageResults &&
               <Grid item xs={8} >
                   <Pagination 
                   count={count} 
                   page={state.offset} 
                   onChange={(e, offset) => handlePaginationClick(offset)} />
               </Grid>
+              }
 
               <Grid item xs={2} >
                 <FormControlLabel
@@ -92,11 +95,8 @@ export default function ResultPage({results, searchTerms}) {
                 labelPlacement="End"
                 />
               </Grid>
-            </Grid>)
-            : (
-              <Typography variant="h6" align='center' color='primary' className="error-message">{"It seems there were no results for your query."}</Typography> 
-            )
-          }
+            </Grid>)}
+
 
 
             { state.data.slice(

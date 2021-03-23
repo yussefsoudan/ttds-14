@@ -35,6 +35,7 @@ export default function SearchBar(props) {
         genre: "",
         yearTo : 2021,
         yearFrom: 1990,
+        minRating:1,
         correction: ""
     });
 

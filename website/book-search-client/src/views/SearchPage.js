@@ -116,7 +116,8 @@ type of search
       bookTitle,
       genre,
       yearFrom,
-      yearTo} = searchInput
+      yearTo,
+      minRating} = searchInput
 
 
     setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
@@ -126,7 +127,7 @@ type of search
     await getSearchResults(
       bookSearch ? "/books_search" : "/quotes_search",
 
-      {quote, author ,bookTitle, genre, yearFrom, yearTo}
+      {quote, author ,bookTitle, genre, yearFrom, yearTo, minRating}
       )
         .then(response => {
             // console.log("res in setAPIResponse: " + JSON.stringify(response));
@@ -180,7 +181,12 @@ type of search
              >
             <CircularProgress />
           </Grid>) 
-          :  ( state.success && <ResultPage results={state.apiResponse.books} searchTerms={state.searchTerms} /> ) // provide list of results
+          :  ( 
+            state.success && (
+            (state.apiResponse.books.length>0 )
+            ? ( <ResultPage results={state.apiResponse.books} searchTerms={state.searchTerms} />)
+            :  ( <Typography variant="h6" align='center' color='primary' className="error-message">{"It seems there were no results for your query."}</Typography> )
+           )) // provide list of results
           }
           {state.errorOccur && <Typography variant="h6" align='center' color='error' className="error-message">{`Your request has timed out. The error message is: ${state.errorMsg}`}</Typography> }
         </Container>

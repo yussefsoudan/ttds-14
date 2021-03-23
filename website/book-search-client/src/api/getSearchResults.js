@@ -10,6 +10,7 @@ const getSearchResults = async(endpoint, params) => {
         genre: params.genre, 
         yearTo: params.yearTo, 
         yearFrom: params.yearFrom,
+        minRating: params.minRating,
         responseType: 'json'
     })
     .then(response => {

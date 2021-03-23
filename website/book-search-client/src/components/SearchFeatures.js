@@ -26,12 +26,6 @@ for(var i = 1990; i< 2022; i++){
 }
 
 
-// let authors = [{name:"Janish"}
-// ,{name:"Harry poppins"},
-// {name:"Anna michin"},
-// {name:"Mike"},
-// {name:"Joah noah"}]
-
 let genres = ['Fiction','Biography & Autobiography','Juvenile Fiction','Poetry','Young Adult Fiction',
 'Philosophy','Young Adult Nonfiction','True Crime','Indic fiction (English)']
 
@@ -47,7 +41,8 @@ const SearchFeatures = forwardRef((props,ref) => {
           bookTitle: "",
           genre: "",
           yearFrom:1990,
-          yearTo : 2021
+          yearTo : 2021,
+          minRating: 1
       });
     
 
@@ -199,6 +194,26 @@ const SearchFeatures = forwardRef((props,ref) => {
                  </Select>
              </FormControl>
            </Grid>
+
+           <Grid container item xs={4}>
+             <FormControl className={classes.formControl}>
+                 <InputLabel id="rating">Min. Rating</InputLabel>
+                 <Select
+                   labelId="rating-selcet"
+                   id="rating-select"
+
+                   value={state.minRating}
+                   onChange={e =>handleChange('minRating', e.target.value)}
+                 >
+                   {[1,2,3,4,5].map((rating) => (
+                               <MenuItem key={rating} value={rating} >
+                                 {rating}
+                               </MenuItem>
+                             ))}
+                 </Select>
+             </FormControl>
+           </Grid>    
+
          </Grid>
        </Grid>
     </>
