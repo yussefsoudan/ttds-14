@@ -1,10 +1,13 @@
+import functools
+import operator
+
 from pymongo import MongoClient
 from typing import List
 
 class MongoDB:
     def __init__(self):
         super().__init__()
-        client = MongoClient("mongodb://188.166.173.191:27017")
+        client = MongoClient("mongodb://localhost:27017")
         db = client["TTDS"]
         self.books = db["books"]
         self.quotes = db["quotes"]
@@ -68,3 +71,16 @@ class MongoDB:
         books = self.books.find(adv_options, {"_id": 1})
         book_ids = list(set([book['_id'] for book in list(books)]))
         return book_ids
+
+    def get_all_authors(self):
+        authors = self.books.find({}, {"authors": 1, "_id": 0})
+        authors = [author["authors"] for author in authors]
+        authors = functools.reduce(operator.iconcat, authors, [])
+        author_names = [{"name": author} for author in sorted(list(set(authors)))]
+        return author_names
+
+    def get_all_book_titles(self):
+        book_titles = self.books.find({}, {"title": 1, "_id": 0})
+        book_titles = [title["title"] for title in book_titles]
+        book_titles = [{"book_title": title} for title in sorted(list(set(book_titles)))]
+        return book_titles

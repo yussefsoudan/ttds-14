@@ -15,6 +15,7 @@ import ResultPage from "./ResultPage.js"
 import getSearchResults from "../api/getSearchResults.js";
 import SearchBar from "../components/SearchBar.js";
 import getAllAuthors from "../api/getAllAuthors.js"
+import getAllBookTitles from "../api/getAllBookTitles";
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -57,7 +58,8 @@ export default function SearchPage() {
     errorOccur:false,
     errorMsg:"",
     success: false,
-    authors : []
+    authors : [],
+    book_titles : []
   });
 
   console.log("Search page render")
@@ -73,16 +75,38 @@ export default function SearchPage() {
             console.log(response);
             setState({
               ...state,
-              authors: dummy_authors // to be replaced with response
+              authors: response.authors // to be replaced with response
             });
           })
           .catch(errorResponse => {
             console.log("Error response",errorResponse)
           });
       };
-  
+
       getAllAuthorsRequest();
-      
+
+    }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
+
+
+  useEffect(() => {
+    console.log("Hook to get book titles")
+      const getAllBookTitlesRequest = async () => {
+        // setState({ ...state, connectDB: { ...state.connectDB, isLoading: true } });
+        await getAllBookTitles()
+          .then(response => {
+            console.log(response);
+            setState({
+              ...state,
+              book_titles: response.book_titles // to be replaced with response
+            });
+          })
+          .catch(errorResponse => {
+            console.log("Error response",errorResponse)
+          });
+      };
+
+      getAllBookTitlesRequest();
+
     }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
 
 
@@ -151,7 +175,7 @@ type of search
       </AppBar> */}
       <main>
         {/* Search bar including the Advance search options */}
-        <SearchBar handleRequest={handleRequest}  authors={state.authors}  />
+        <SearchBar handleRequest={handleRequest}  authors={state.authors} book_titles={state.book_titles} />
 
         {/* Results container */}
         <Container className={classes.cardGrid} maxWidth="md">

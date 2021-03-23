@@ -39,6 +39,7 @@ const SearchFeatures = forwardRef((props,ref) => {
     const classes = useStyles();
 
     const authors = props.authors;
+    const book_titles = props.book_titles;
 
     const [state, setState] = useState({
           bookSearch : false,
@@ -90,12 +91,22 @@ const SearchFeatures = forwardRef((props,ref) => {
 
          {/* First row of advance Search */}
          <Grid container item xs={12} spacing={3}>
-           <Grid container item xs={4} >
-             <TextField 
-             id="standard-basic" label="Book Title" 
-             value={state.bookTitle}
-             onChange={e => handleChange('bookTitle', e.target.value)} /> 
+             <Grid container item xs={4} >
+             <Autocomplete
+              id="book-title-select"
+              options={book_titles}
+              getOptionLabel={(book_title) => book_title.book_title}
+              style={{ width: 300 }}
+              renderInput={(params) => <TextField {...params} label="Book Title" />}
+              onChange={(event, newValue) => handleChange('bookTitle', newValue)}
+            />
             </Grid>
+           {/*<Grid container item xs={4} >*/}
+           {/*  <TextField */}
+           {/*  id="standard-basic" label="Book Title" */}
+           {/*  value={state.bookTitle}*/}
+           {/*  onChange={e => handleChange('bookTitle', e.target.value)} /> */}
+           {/* </Grid>*/}
 {/*             
            <Grid container item xs={4} >
              <TextField 

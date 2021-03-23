@@ -62,9 +62,17 @@ def get_most_likely_terms():
 @app.route('/get_all_authors', methods=['POST'])
 def get_all_authors():
     print("Finding all author names")
-    results  = {"authors":[]} # format [ {"name": <author-name>},...{}]
-    return results
+    authors = db.get_all_authors()
+    print("Authors: ", authors)
+    return {"authors": authors}
 
+
+@app.route('/get_all_book_titles', methods=['POST'])
+def get_all_book_titles():
+    print("Finding all book titles")
+    book_titles = db.get_all_book_titles()
+    print("Book titles: ", book_titles)
+    return {"book_titles": book_titles}
 
 
 @app.route('/quote_from_id', methods=['POST'])
