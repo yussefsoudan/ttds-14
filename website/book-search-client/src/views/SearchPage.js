@@ -68,47 +68,39 @@ export default function SearchPage() {
   // Use effect hook that will be triggered once, on render, to fetch the Author names
   useEffect(() => {
     console.log("Hook to get author names")
-      const getAllAuthorsRequest = async () => {
-        // setState({ ...state, connectDB: { ...state.connectDB, isLoading: true } });
+      const getAuthorsandBookNames = async () => {
+        let authors = []
+        let book_titles = []
         await getAllAuthors()
           .then(response => {
-            console.log(response);
-            setState({
-              ...state,
-              authors: response.authors // to be replaced with response
-            });
+            // console.log("repsonse within author hook",response);
+            authors = response.authors
           })
           .catch(errorResponse => {
             console.log("Error response",errorResponse)
           });
-      };
 
-      getAllAuthorsRequest();
-
-    }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
-
-
-  useEffect(() => {
-    console.log("Hook to get book titles")
-      const getAllBookTitlesRequest = async () => {
-        // setState({ ...state, connectDB: { ...state.connectDB, isLoading: true } });
-        await getAllBookTitles()
+          await getAllBookTitles()
           .then(response => {
-            console.log(response);
-            setState({
-              ...state,
-              book_titles: response.book_titles // to be replaced with response
-            });
+            // console.log("repsonse within book hook",response);
+            book_titles = response.book_titles
           })
           .catch(errorResponse => {
             console.log("Error response",errorResponse)
           });
+
+          setState({
+              ...state,
+              book_titles: book_titles,
+              authors:authors
+          })
       };
 
-      getAllBookTitlesRequest();
+    
+
+      getAuthorsandBookNames();
 
     }, []); // empty list of dependencies ensures the hooks is only called upon rendering of the component
-
 
 
 /* 
