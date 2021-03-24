@@ -1,6 +1,6 @@
 const axios = require('axios');
 // const findQuoteURL = 'http://localhost:9000/findQuote';
-const getBookTitlesURL = 'http://0.0.0.0:5000/get_all_book_titles';
+const getBookTitlesURL = 'http://127.0.0.1:5000/get_all_book_titles';
 
 const getAllBookTitles = async() => {
     return axios.post(getBookTitlesURL,{
