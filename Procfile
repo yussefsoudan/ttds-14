@@ -1,1 +1,1 @@
-web: gunicorn app:app --log-file=-
+web: bin/proximo app:app --log-file=-
