@@ -205,6 +205,176 @@ def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
     return float("{0:.4f}".format(next_param * idf_param))
 
 
+# ------------------- Phrase search and ranking --------------------------
+# ------------------------------------------------------------------------
+def quote_phrase_search(query):
+    tracker = phrase_search(query)
+    return tracker
+
+def phrase_search(query_params): 
+    results = set()
+    terms = query_params['query']
+    start_time = time.time()
+
+    for i in range(1, len(terms)):
+        intermediate = set()
+
+        # doing phrase search for pair of terms in phrase (so 1st,2nd / 1st,3rd / 1st,4th etc.)
+        documents_1 = db.get_docs_by_term(terms[0], 0, sort=True) # get documents for first term
+        documents_2 = db.get_docs_by_term(terms[i], 0, sort=True)
+        doc_1 = next(documents_1, None)
+        doc_2 = next(documents_2, None)
+
+        # track the position of each book in the book arrays
+        book_pos_1 = 0 
+        book_pos_2 = 0
+
+        # track position of quote in quote arrays
+        quote_pos_1 = 0
+        quote_pos_2 = 0
+        break_doc_loop = False
+        doc_time = time.time()
+
+        while doc_1 is not None and doc_2 is not None:
+            if time.time() - start_time > 10:
+                break
+            book_loop_time = time.time()
+            # increment book position of the second doc (corresponding to second term) until 
+            # second term's book id >= first term's book id
+            while doc_2['books'][book_pos_2]['_id'] < doc_1['books'][book_pos_1]['_id']:
+                quote_pos_2 = 0
+                book_pos_2 += 1
+                
+                # this just checks if the end of a document has been reached
+                if book_pos_2 >= len(doc_2['books']):
+                    # print("moving doc_2 to the next")
+                    book_pos_2 = 0 
+                    doc_2 = next(documents_2, None)        
+
+                    if doc_2 is None:
+                        # print("while incrementing book ids, reached the end of the docs, setting break_doc_loop to True")
+                        break_doc_loop = True
+                        break   
+            
+            # print("time for book loop: {}".format(time.time() - book_loop_time))
+            # print("book_1_id is: {}".format(doc_1['books'][book_pos_1]['_id']))
+            # print("book_2_id is: {}".format(doc_2['books'][book_pos_2]['_id']))
+
+            # at this point second term's book id should be >= first term's book id; if they are equal, enter if statement
+            if not break_doc_loop and doc_1['books'][book_pos_1]['_id'] == doc_2['books'][book_pos_2]['_id']:
+                quote_loop_time = time.time() 
+
+                # do the same for the quote positions - to get second term's quote id for the book >= first term's quote id for the book
+                while doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id'] < doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']:
+                    quote_pos_2 += 1
+
+                    # if quotes array exceeded -> move to next book in books array -> if books array exceeded
+                    # -> move to next doc in the returned documents -> if doc is None (end of documents reached), break
+                    if quote_pos_2 >= len(doc_2['books'][book_pos_2]['quotes']):
+                        quote_pos_2 = 0
+                        # print("incremented book_pos_2 by 1")
+                        book_pos_2 += 1
+
+                        if book_pos_2 >= len(doc_2['books']):
+                            book_pos_2 = 0 
+                            doc_2 = next(documents_2, None)   
+
+                            if doc_2 is None:
+                                # print("while incrementing quote ids, reached the end of the docs, setting break_doc_loop to True")
+                                break_doc_loop = True
+                                break        
+                
+                # print("time for quote loop: {}".format(time.time() - quote_loop_time))
+                # print("quote_1_id is: {}".format(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
+                # print("quote_2_id is: {}".format(doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id']))
+
+                if not break_doc_loop and doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'] == doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id']:
+                    # print("FOUND EQUAL QUOTE ID: {}".format(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
+                    find_pos_time = time.time()
+                    
+                    pos_1_list = doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['pos']
+                    pos_2_list = doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['pos']
+
+                    pos_check = [int(x1) - int(x2) for (x1, x2) in zip(pos_2_list, pos_1_list)]
+
+                    # this checks if it's a phrase occurring in the common book + common quote
+                    if i in pos_check:
+                        intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                    
+                    quote_pos_1 += 1
+                    # if quotes array exceeded -> move to next book in books array -> if books array exceeded
+                    # -> move to next doc in the returned documents -> if doc is None (end of documents reached), break
+                    if quote_pos_1 >= len(doc_1['books'][book_pos_1]['quotes']):
+                        quote_pos_1 = 0
+                        book_pos_1 += 1
+
+                        if book_pos_1 >= len(doc_1['books']):
+                            book_pos_1 = 0
+                            doc_1 = next(documents_1, None)
+                            
+                            if doc_1 is None:
+                                # print("while moving doc_1 after finding a phrase, reached None; break")
+                                # break_doc_loop = True
+                                break
+                            
+                    # print("time spent finding position in quote: {}".format(time.time() - find_pos_time))
+                    
+                else:
+                    # if quotes array exceeded -> move to next book in books array -> if books array exceeded
+                    # -> move to next doc in the returned documents -> if doc is None (end of documents reached), break
+                    quote_pos_1 += 1
+                    if quote_pos_1 >= len(doc_1['books'][book_pos_1]['quotes']):
+                        quote_pos_1 = 0
+                        book_pos_1 += 1
+
+                        if book_pos_1 >= len(doc_1['books']):
+                            book_pos_1 = 0 
+                            doc_1 = next(documents_1, None)
+
+                            if doc_1 is None:
+                                # print("while moving doc 1 when quote ids didnt match, reached None; break")
+                                break
+
+            else:
+                # print("incremented book pos 1 by 1")
+                quote_pos_1 = 0
+                book_pos_1 += 1
+
+                # if books array exceeded -> move to next doc in the returned documents -> if doc is None (end of documents reached), break
+                if book_pos_1 >= len(doc_1['books']):
+                    quote_pos_1 = 0
+                    book_pos_1 = 0
+                    doc_1 = next(documents_1, None)
+
+                    if doc_1 is None:
+                        # print("book ids didnt match and moved doc 1 forward, reached None; break")
+                        break
+
+            if break_doc_loop:
+                # print("one of the previous while loops set break_doc_loop to true, break")
+                break
+
+        # for each pair of terms (e.g. 1st,2nd), intersect with what has been found so far
+        # e.g. 1st,2nd returns a certain intermediate set of quote ids (containing pos diff 1 for 1st,2nd terms)
+        # 1st,3rd returns a certain intermediate set of quote ids, (containing pos diff 2 for 1st,3rd terms)
+        # we want intersection of the two to ensure quotes returned contains phrase 1st,2nd,3rd
+        if len(intermediate) != 0:
+            # print("intermediate is: {}".format(intermediate))
+            if len(results) == 0:
+                results = intermediate
+            else:
+                # comm_keys = set(results.keys()).intersection(intermediate.keys())
+                results = results.intersection(intermediate)
+            # print("doc time: {}".format(time.time() - doc_time))
+        else:
+            # print("none of this phrase found")
+            results = set()
+            break   
+    
+    # print("results are: {}".format(results))
+    # results are tuples (book_id, quote_id)
+    return results
+    
 if __name__ == '__main__':
 
     db = MongoDB()
