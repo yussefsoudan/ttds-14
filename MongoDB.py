@@ -1,14 +1,20 @@
 import functools
 import operator
-
+from os import environ
 from pymongo import MongoClient
 from typing import List
+import urllib.parse
 
 class MongoDB:
     def __init__(self):
         super().__init__()
-        client = MongoClient("mongodb://localhost:27017")
-        db = client["TTDS"]
+        DB_PASS='thenittygrittyofELnitty'
+        DB_USER='readerTTDS'
+        DB_NAME='TTDS' 
+        DB_HOST='188.166.173.191'
+        PORT = 27017
+        client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
+        db = client[DB_NAME]
         self.books = db["books"]
         self.quotes = db["quotes"]
         self.inverted_index = db["invertedIndex"] 
