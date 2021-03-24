@@ -121,7 +121,7 @@ def get_quotes_from_terms():
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
     details = request.get_json()
 
-    # quote contains character " => phrase search is true
+    # quote contains character " twice and they are at the beginning / end of the quote => phrase search is true
     phrase_search = False
     char_pos = [char.start() for char in re.finditer('"', details['quote'])]
     if len(char_pos) == 2:
