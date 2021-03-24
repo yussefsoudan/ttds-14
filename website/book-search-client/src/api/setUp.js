@@ -1,5 +1,5 @@
 const axios = require('axios');
-const setUpURL = 'http://localhost:9000/SetUp';
+const setUpURL = 'https://ttds-14.herokuapp.com/SetUp';
 
 const setUp = async() => {
     return axios.get(setUpURL,{})
