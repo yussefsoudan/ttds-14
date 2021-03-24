@@ -1,17 +1,25 @@
 import functools
 import operator
-
+from os import environ
 from pymongo import MongoClient
 from typing import List
+import urllib.parse
 
 class MongoDB:
     def __init__(self):
         super().__init__()
-        client = MongoClient("mongodb://localhost:27017")
-        db = client["TTDS"]
+        DB_PASS='thenittygrittyofELnitty'
+        DB_USER='readerTTDS'
+        DB_NAME='TTDS' 
+        DB_HOST='localhost'
+        PORT = 27017
+        client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
+        db = client[DB_NAME]
         self.books = db["books"]
         self.quotes = db["quotes"]
         self.inverted_index = db["invertedIndex"] 
+        print("COUNT DOCS")
+        print(self.inverted_index.count_documents({}))
         # self.quotes.create_index('_id')
 
         # self.inverted_index = self.ttds.inverted_index
@@ -67,6 +75,8 @@ class MongoDB:
             adv_options.update({'title': query['bookTitle']})
         if query['genre']:
             adv_options.update({'categories': query['genre']})
+        if query['min_rating']:
+            adv_options.update({"averageRating": {'$gte': query["min_rating"]}})
         print(adv_options)
         books = self.books.find(adv_options, {"_id": 1})
         book_ids = list(set([book['_id'] for book in list(books)]))

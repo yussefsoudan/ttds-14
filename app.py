@@ -94,7 +94,8 @@ def get_books_from_terms():
     print("preprocessed terms",preprocessed_terms)
 
     ranked_books = ranked_book_search({"query":preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
-                                       "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"])}) # ranked_book_search returns list: [(book_id, score)]
+                                       "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
+                                       'min_rating': details['minRating']}) # ranked_book_search returns list: [(book_id, score)]
     print("ranked books: {}".format(ranked_books))
 
     # if we want book info apart from the book_ids we need to do another search - would this make sense?
@@ -120,20 +121,26 @@ def get_quotes_from_terms():
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
     details = request.get_json()
 
-    # TODO
-    # Perform a check on the request string to check if 
-    # a phrase search was requested and update the flag below
-    phrase_search  = False
+    # quote contains character " twice and they are at the beginning / end of the quote => phrase search is true
+    phrase_search = False
+    char_pos = [char.start() for char in re.finditer('"', details['quote'])]
+    if len(char_pos) == 2:
+        if char_pos[0] == 0 and char_pos[1] == len(details['quote']) - 1:
+            phrase_search = True
 
-    # Preprocesse the quote
+    # Preprocess the quote
     preprocessed_terms = preprocess(details["quote"])
     print("preprocessed terms",preprocessed_terms)
 
-    ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
-                                            "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"])}) # ranked_quote_search returns list: [(quote_id, score)]
-    print("ranked quotes: {}".format(ranked_quotes))
+    if phrase_search:
+        ranked_quote_ids = list(quote_phrase_search({"query": preprocessed_terms})) # phrase search returns set(quote_ids)
+    else:
+        ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
+                                            "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
+                                           'min_rating': details['minRating']}) # ranked_quote_search returns list: [(quote_id, score)]
+        print("ranked quotes: {}".format(ranked_quotes))
+        ranked_quote_ids = [i[0] for i in ranked_quotes]
 
-    ranked_quote_ids = [i[0] for i in ranked_quotes]
     quotes_results = db.get_quotes_by_quote_id_list(ranked_quote_ids)
     
     for i, dic_quote in enumerate(quotes_results):
@@ -158,4 +165,4 @@ def get_quotes_from_terms():
 
 
 if __name__ == '__main__':
-    app.run(debug=False, port=9000)
+    app.run(debug=True,host='0.0.0.0')
