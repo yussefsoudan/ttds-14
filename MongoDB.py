@@ -67,6 +67,8 @@ class MongoDB:
             adv_options.update({'title': query['bookTitle']})
         if query['genre']:
             adv_options.update({'categories': query['genre']})
+        if query['min_rating']:
+            adv_options.update({"averageRating": {'$gte': query["min_rating"]}})
         print(adv_options)
         books = self.books.find(adv_options, {"_id": 1})
         book_ids = list(set([book['_id'] for book in list(books)]))

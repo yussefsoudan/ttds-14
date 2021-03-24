@@ -94,7 +94,8 @@ def get_books_from_terms():
     print("preprocessed terms",preprocessed_terms)
 
     ranked_books = ranked_book_search({"query":preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
-                                       "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"])}) # ranked_book_search returns list: [(book_id, score)]
+                                       "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
+                                       'min_rating': details['minRating']}) # ranked_book_search returns list: [(book_id, score)]
     print("ranked books: {}".format(ranked_books))
 
     # if we want book info apart from the book_ids we need to do another search - would this make sense?
@@ -130,7 +131,8 @@ def get_quotes_from_terms():
     print("preprocessed terms",preprocessed_terms)
 
     ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
-                                            "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"])}) # ranked_quote_search returns list: [(quote_id, score)]
+                                            "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
+                                           'min_rating': details['minRating']}) # ranked_quote_search returns list: [(quote_id, score)]
     print("ranked quotes: {}".format(ranked_quotes))
 
     ranked_quote_ids = [i[0] for i in ranked_quotes]
