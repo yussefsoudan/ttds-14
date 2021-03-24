@@ -41,7 +41,6 @@ def serve():
 
 
 @app.route('/spellcheck', methods=['POST'])
-@cross_origin()
 def get_most_likely_terms():
     print("Spell-checking: ", request.get_json())
     search_text = request.get_json()["search_text"]
