@@ -60,7 +60,6 @@ def get_most_likely_terms():
 
 
 @app.route('/get_all_authors', methods=['POST'])
-@cross_origin()
 def get_all_authors():
     print("Finding all author names")
     authors = db.get_all_authors()
@@ -69,7 +68,6 @@ def get_all_authors():
 
 
 @app.route('/get_all_book_titles', methods=['POST'])
-@cross_origin()
 def get_all_book_titles():
     print("Finding all book titles")
     book_titles = db.get_all_book_titles()
@@ -78,7 +76,6 @@ def get_all_book_titles():
 
 
 @app.route('/quote_from_id', methods=['POST'])
-@cross_origin()
 def get_quote_from_quote_id():
     print("Request.get_json ", request.get_json())
     quote_id = request.get_json()["_id"]
@@ -88,7 +85,6 @@ def get_quote_from_quote_id():
 
 # this tries out ranked_book_search function from ranking.py
 @app.route('/books_search', methods=['POST'])
-@cross_origin()
 def get_books_from_terms():
     print("request in get_books_from_terms is {}".format(request.get_json()))
     details = request.get_json()
@@ -121,7 +117,6 @@ def get_books_from_terms():
 # this tries out ranked_quote_retrieval function from ranking.py
 # In this function, both simple quote search and phrase search will be handled
 @app.route('/quotes_search', methods=['POST'])
-@cross_origin()
 def get_quotes_from_terms():
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
     details = request.get_json()
@@ -170,4 +165,4 @@ def get_quotes_from_terms():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(debug=True, port=9000)

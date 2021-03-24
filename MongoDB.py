@@ -12,14 +12,14 @@ class MongoDB:
         DB_USER='readerTTDS'
         DB_NAME='TTDS' 
         DB_HOST='188.166.173.191'
-        PORT = 27017
+        PORT = '27017'
         client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
         db = client[DB_NAME]
         self.books = db["books"]
         self.quotes = db["quotes"]
         self.inverted_index = db["invertedIndex"] 
         print("COUNT DOCS")
-        print(self.inverted_index.count_documents({}))
+        print(db["invertedIndex"].count())
         # self.quotes.create_index('_id')
 
         # self.inverted_index = self.ttds.inverted_index
