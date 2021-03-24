@@ -18,6 +18,8 @@ class MongoDB:
         self.books = db["books"]
         self.quotes = db["quotes"]
         self.inverted_index = db["invertedIndex"] 
+        print("COUNT DOCS")
+        print(self.inverted_index.count_documents({}))
         # self.quotes.create_index('_id')
 
         # self.inverted_index = self.ttds.inverted_index
