@@ -122,7 +122,11 @@ def get_quotes_from_terms():
     details = request.get_json()
 
     # quote contains character " => phrase search is true
-    phrase_search = True if any('"' in details["quote"]) else False
+    phrase_search = False
+    char_pos = [char.start() for char in re.finditer('"', details['quote'])]
+    if len(char_pos) == 2:
+        if char_pos[0] == 0 and char_pos[1] == len(details['quote']) - 1:
+            phrase_search = True
 
     # Preprocess the quote
     preprocessed_terms = preprocess(details["quote"])
