@@ -93,7 +93,7 @@ const SearchFeatures = forwardRef((props,ref) => {
               getOptionLabel={(book_title) => book_title.book_title}
               style={{ width: 300 }}
               renderInput={(params) => <TextField {...params} label="Book Title" />}
-              onChange={(event, newValue) => handleChange('bookTitle', newValue)}
+              onChange={(event, newValue) => handleChange('bookTitle', newValue ? newValue.book_title : newValue )}
             />
             </Grid>
            {/*<Grid container item xs={4} >*/}
@@ -116,7 +116,7 @@ const SearchFeatures = forwardRef((props,ref) => {
               getOptionLabel={(author) => author.name}
               style={{ width: 300 }}
               renderInput={(params) => <TextField {...params} label="Author" />}
-              onChange={(event, newValue) => handleChange('author', newValue)}  
+              onChange={(event, newValue) => handleChange('author', newValue ? newValue.name : newValue)}  
 
             />
             </Grid>
