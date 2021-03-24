@@ -1,5 +1,5 @@
 const axios = require('axios');
-const getQuotesURL = 'https://ttds-14.herokuapp.com//quotes_from_terms_list';
+const getQuotesURL = 'http://188.166.173.191:5000/quotes_from_terms_list';
 
 const getQuotesFromTerms = async(terms) => {
     return axios.post(getQuotesURL,{
