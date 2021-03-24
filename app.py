@@ -121,21 +121,22 @@ def get_quotes_from_terms():
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
     details = request.get_json()
 
-    # TODO
-    # Perform a check on the request string to check if 
-    # a phrase search was requested and update the flag below
-    phrase_search  = False
+    # quote contains character " => phrase search is true
+    phrase_search = True if any('"' in details["quote"]) else False
 
-    # Preprocesse the quote
+    # Preprocess the quote
     preprocessed_terms = preprocess(details["quote"])
     print("preprocessed terms",preprocessed_terms)
 
-    ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
+    if phrase_search:
+        ranked_quote_ids = list(quote_phrase_search({"query": preprocessed_terms})) # phrase search returns set(quote_ids)
+    else:
+        ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
                                             "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
                                            'min_rating': details['minRating']}) # ranked_quote_search returns list: [(quote_id, score)]
-    print("ranked quotes: {}".format(ranked_quotes))
+        print("ranked quotes: {}".format(ranked_quotes))
+        ranked_quote_ids = [i[0] for i in ranked_quotes]
 
-    ranked_quote_ids = [i[0] for i in ranked_quotes]
     quotes_results = db.get_quotes_by_quote_id_list(ranked_quote_ids)
     
     for i, dic_quote in enumerate(quotes_results):
