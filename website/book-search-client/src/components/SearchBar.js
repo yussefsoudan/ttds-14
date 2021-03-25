@@ -46,7 +46,11 @@ export default function SearchBar(props) {
     const handleChange = (event) => {
       setState({...state,quote: event.target.value})
       // Spellcheck
+<<<<<<< HEAD
       axios.post('http://188.166.173.191:5000' + '/spellcheck',{
+=======
+      axios.post('http://0.0.0.0:5000' + '/spellcheck',{
+>>>>>>> 8dea1ec8ea5dde07c58da6702447d5009fd746ea
         search_text: event.target.value
       }).then(res => {
       if (res['data']['correction_exists']) {
