@@ -1,5 +1,5 @@
 const axios = require('axios');
-const setUpURL = 'http://127.0.0.1:5000/SetUp';
+const setUpURL = 'http://188.166.173.191:5000/SetUp';
 
 const setUp = async() => {
     return axios.get(setUpURL,{})

@@ -17,6 +17,7 @@
     "react-scripts": "^4.0.3",
     "react-show-more-text": "^1.4.6",
     "react-stars-display": "^0.1.24",
+    "surge": "^0.22.1",
     "web-vitals": "^1.1.0"
   },
   "scripts": {
