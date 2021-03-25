@@ -55,7 +55,7 @@ export default function SearchBar(props) {
         setState({...state,correction: "", quote: event.target.value})
       }
       }).catch(err => {
-      console.log("ERROR RETRIEVING CORRECTION: " + err)
+      console.log("ERROR RETRIEVINGG CORRECTION: " + err)
       });
         
     };
