@@ -1,16 +1,16 @@
 from flask import Flask, request, send_from_directory
 from flask_cors import CORS
-import json
-import re
-import time
-from MongoDB import MongoDB 
-from ranking import *
-import os
-from nltk.corpus import stopwords
-import nltk 
-nltk.download('stopwords')
-from nltk.stem.porter import *
-from spellchecker import SpellChecker
+# import json
+# import re
+# import time
+# from MongoDB import MongoDB 
+# from ranking import *
+# import os
+# from nltk.corpus import stopwords
+# import nltk 
+# nltk.download('stopwords')
+# from nltk.stem.porter import *
+# from spellchecker import SpellChecker
 
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
