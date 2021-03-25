@@ -220,8 +220,8 @@ def phrase_search(query_params):
         intermediate = set()
 
         # doing phrase search for pair of terms in phrase (so 1st,2nd / 1st,3rd / 1st,4th etc.)
-        documents_1 = db.get_docs_by_term(terms[0], 0, sort=True) # get documents for first term
-        documents_2 = db.get_docs_by_term(terms[i], 0, sort=True)
+        documents_1 = db.get_docs_by_term(terms[0], 0, 200, sort=True) # get documents for first term
+        documents_2 = db.get_docs_by_term(terms[i], 0, 200, sort=True)
         doc_1 = next(documents_1, None)
         doc_2 = next(documents_2, None)
 
