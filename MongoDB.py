@@ -87,6 +87,7 @@ class MongoDB:
         authors = self.books.find({}, {"authors": 1, "_id": 0})
         authors = [author["authors"] for author in authors]
         authors = functools.reduce(operator.iconcat, authors, [])
+        authors = list(filter(bool, authors))
         author_names = [{"name": author} for author in sorted(list(set(authors)))]
         return author_names
 
