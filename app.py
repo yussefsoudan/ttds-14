@@ -16,23 +16,23 @@ from spellchecker import SpellChecker
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
 
-db = MongoDB()
-stopSet = set(stopwords.words('english'))
-stemmer = PorterStemmer()
-spell = SpellChecker()
+#db = MongoDB()
+#stopSet = set(stopwords.words('english'))
+#stemmer = PorterStemmer()
+#spell = SpellChecker()
 
-def merge_dict_lists (l1,l2,key):
-    merged = l1
-    for n, item1 in enumerate(l1):
-        for item2 in l2:
-            if item1[key] == item2[key]:
-                merged[n].update(item2)
-    return merged
+# def merge_dict_lists (l1,l2,key):
+#     merged = l1
+#     for n, item1 in enumerate(l1):
+#         for item2 in l2:
+#             if item1[key] == item2[key]:
+#                 merged[n].update(item2)
+#     return merged
 
 
-def preprocess(quote):
-    terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote) if not token.lower() in stopSet]
-    return terms
+# def preprocess(quote):
+#     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote) if not token.lower() in stopSet]
+#     return terms
 
 @app.route('/')
 def serve():
