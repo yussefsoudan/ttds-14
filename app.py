@@ -16,7 +16,7 @@ from spellchecker import SpellChecker
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
 
-db = MongoDB()
+db = ""
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 spell = SpellChecker()
