@@ -1,6 +1,6 @@
 const axios = require('axios');
 // const findQuoteURL = 'http://localhost:9000/findQuote';
-const findQuoteURL = 'http://127.0.0.1:5000/quote_from_id';
+const findQuoteURL = 'http://188.166.173.191:5000/quote_from_id';
 
 const findQuote = async(quoteId) => {
     return axios.post(findQuoteURL,{
