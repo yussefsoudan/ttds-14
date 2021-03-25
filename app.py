@@ -175,7 +175,6 @@ def get_quotes_from_terms(details):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
     # start = time.time()
     # details = {"quote": 'develop talent', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
     # result = get_quotes_from_terms(details)

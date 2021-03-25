@@ -446,13 +446,13 @@ if __name__ == '__main__':
 
     # db = MongoDB()
     # batch_size = 50
-    # query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
-    query_params = {"query": ['develop', 'talent']}
+    query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # query_params = {"query": ['develop', 'talent']}
     start = time.time()
     # tracker = ranking_query_BM25(query_params)
 
-    tracker = phrase_search(query_params)
-    # ranked_books = book_ranking_query_TFIDF(query_params)
+    # tracker = phrase_search(query_params)
+    tracker = book_ranking_query_TFIDF(query_params)
     # ranked_book_ids = [i[0] for i in ranked_books]
     # books = db.get_books_by_book_id_list(ranked_book_ids) # returns list of book cursors
     # print(books.count())
@@ -465,5 +465,4 @@ if __name__ == '__main__':
     # print()
     # print(list(book_results))
     print(tracker)
-    # print(ranked_books)
     print("time taken: {}".format(time.time() - start))
