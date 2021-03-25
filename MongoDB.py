@@ -11,15 +11,15 @@ class MongoDB:
         DB_PASS='thenittygrittyofELnitty'
         DB_USER='readerTTDS'
         DB_NAME='TTDS' 
-        DB_HOST='localhost'
-        PORT = 27017
+        DB_HOST='188.166.173.191'
+        PORT = '27017'
         client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
         db = client[DB_NAME]
         self.books = db["books"]
         self.quotes = db["quotes"]
         self.inverted_index = db["invertedIndex"] 
         print("COUNT DOCS")
-        print(self.inverted_index.count_documents({}))
+        print(db["invertedIndex"].count())
         # self.quotes.create_index('_id')
 
         # self.inverted_index = self.ttds.inverted_index
@@ -68,18 +68,20 @@ class MongoDB:
 
     def get_filtered_books_by_adv_search(self, query):
         adv_options = {}
-        adv_options.update({"publishedDate": {'$lt': query["yearTo"], '$gte': query["yearFrom"]}})
+        if int(query['yearTo']) < 2021 or int(query['yearFrom']) > 1990:
+            adv_options.update({"publishedDate": {'$lt': query["yearTo"], '$gte': query["yearFrom"]}})
         if query['author']:
             adv_options.update({'authors': query['author']})
         if query['bookTitle']:
             adv_options.update({'title': query['bookTitle']})
         if query['genre']:
             adv_options.update({'categories': query['genre']})
-        if query['min_rating']:
-            adv_options.update({"averageRating": {'$gte': query["min_rating"]}})
+        if query['min_rating'] != 1:
+            adv_options.update({'$or': [{'averageRating': {'$gte': query['min_rating']}}, {'averageRating': ""}]})
         print(adv_options)
         books = self.books.find(adv_options, {"_id": 1})
         book_ids = list(set([book['_id'] for book in list(books)]))
+        print("adv search number or results:", len(book_ids))
         return book_ids
 
     def get_all_authors(self):

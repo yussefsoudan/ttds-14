@@ -138,6 +138,7 @@ type of search
                   books : response.books}, // book object, might contain quote as well 
                 requestError: "",
                 success:true,
+                errorOccur: false,
                 searchTerms:response.searchTerms
             });
         })
