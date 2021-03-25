@@ -1,5 +1,5 @@
 const axios = require('axios');
-const baseURL = 'http://188.166.173.191:5000';
+const baseURL = 'https://188.166.173.191:5000';
 
 const getSearchResults = async(endpoint, params) => {
     console.log("request endpoint",baseURL + endpoint)
