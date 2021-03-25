@@ -14,7 +14,7 @@ from flask_cors import CORS
 
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
-CORS(app)
+#CORS(app)
 
 #db = MongoDB()
 #stopSet = set(stopwords.words('english'))
@@ -165,4 +165,4 @@ def serve():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(debug=True, port=9000)
