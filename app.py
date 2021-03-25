@@ -37,7 +37,7 @@ def preprocess(quote):
 @app.route('/')
 def serve():
     print("SERVING....")
-    return send_from_directory(app.static_folder,'index.html')
+    return "Server is working."
 
 
 @app.route('/spellcheck', methods=['POST'])
