@@ -63,7 +63,7 @@ def get_most_likely_terms():
 def get_all_authors():
     print("Finding all author names")
     authors = db.get_all_authors()
-    print("Authors: ", authors)
+    print("Number of Authors: ", len(authors))
     return {"authors": authors}
 
 
@@ -71,7 +71,7 @@ def get_all_authors():
 def get_all_book_titles():
     print("Finding all book titles")
     book_titles = db.get_all_book_titles()
-    print("Book titles: ", book_titles)
+    print("Number of Book titles: ", len(book_titles))
     return {"book_titles": book_titles}
 
 
