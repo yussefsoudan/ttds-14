@@ -42,7 +42,7 @@ class MongoDB:
 
     def get_books_by_book_id_list(self, book_ids: List[str]):
         print("Book id lists:",str(book_ids))
-        books = list(self.books.find({"_id": {"$in": book_ids}}))
+        books = self.books.find({"_id": {"$in": book_ids}})
         return books
     
     def get_quotes_by_quote_id_list(self, quote_ids: List[str]):
@@ -80,7 +80,7 @@ class MongoDB:
             adv_options.update({'$or': [{'averageRating': {'$gte': query['min_rating']}}, {'averageRating': ""}]})
         print(adv_options)
         books = self.books.find(adv_options, {"_id": 1})
-        book_ids = list(set([book['_id'] for book in list(books)]))
+        book_ids = set([book['_id'] for book in books]) #list()
         print("adv search number or results:", len(book_ids))
         return book_ids
 

@@ -100,11 +100,13 @@ def get_books_from_terms():
 
     # if we want book info apart from the book_ids we need to do another search - would this make sense?
     ranked_book_ids = [i[0] for i in ranked_books]
-    book_results = db.get_books_by_book_id_list(ranked_book_ids)
+    books = db.get_books_by_book_id_list(ranked_book_ids) # returns cursor
 
-    for dic_book in book_results:
+    book_results = []
+    for dic_book in books:
         if dic_book is not None and 'book_id' not in dic_book:  # book_id may already be added if different quotes share the same book!
             dic_book['book_id'] = dic_book.pop('_id')
+            book_results.append(dic_book)
     
     # Responsibility of front end to determine that this object will not contain
     # quotes and just displaying the requested quote

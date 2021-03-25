@@ -61,14 +61,16 @@ def book_ranking_query_TFIDF(query_params):
     relevant_books = None
     if any([query_params['author'], query_params['bookTitle'], query_params['genre'], int(query_params['min_rating']) > 1,
             int(query_params['yearTo']) < 2021, int(query_params['yearFrom']) > 1990]):
+        adv_time = time.time()
         relevant_books = db.get_filtered_books_by_adv_search(query_params)
+        print("time taken for adv search: {}".format(time.time() - adv_time))
     start_time = time.time()
     for term in terms:
-        print("Term for book search",term)
+        print("Term for book search ", term)
         # Setup
         # Since index could have multiple occurences of term
         # it might return multiple Cursor objects 
-        term_docs = list(db.get_books_by_term(term))
+        term_docs = db.get_books_by_term(term)
         total_book_count = 0
         for term_doc in term_docs:
             # print(term_doc)
@@ -76,14 +78,16 @@ def book_ranking_query_TFIDF(query_params):
 
         print(f"Term {term} book count: {total_book_count}")
 
+        term_docs = db.get_books_by_term(term)
         # Compute
         for term_doc in term_docs:
             # print("Term doc",term_doc)
             for book in term_doc['books']:
-                # print("Book id",book['_id'])
-                # print("Book term frequency",book['term_freq_in_book'])
+                print("Book id ",book['_id'])
+                print("Book term frequency ",book['term_freq_in_book'])
                 book_id = book['_id']
-                if relevant_books is None or book_id in relevant_books:
+
+                if relevant_books is None or book_id in relevant_books: 
                     book_term_freq = book['term_freq_in_book']
                     score = tfidf(book_id,book_term_freq,total_book_count)
                     scored_books[book_id] = score
@@ -375,7 +379,22 @@ def phrase_search(query_params):
     # results are tuples (book_id, quote_id)
     return results
     
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    db = MongoDB()
-    batch_size = 50
+    # db = MongoDB()
+    # batch_size = 50
+    # query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # start = time.time()
+    # ranked_books = book_ranking_query_TFIDF(query_params)
+    # ranked_book_ids = [i[0] for i in ranked_books]
+    # books = db.get_books_by_book_id_list(ranked_book_ids) # returns list of book cursors
+    # print(books.count())
+    # print()
+    # book_results = []
+    # for dic_book in books:
+    #     if dic_book is not None and dic_book.get('book_id') is None:  # book_id may already be added if different quotes share the same book!
+    #         dic_book['book_id'] = dic_book.pop('_id')
+    #         book_results.append(dic_book)
+    # print()
+    # print(list(book_results))
+    # print("time taken: {}".format(time.time() - start))
