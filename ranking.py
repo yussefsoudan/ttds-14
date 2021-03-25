@@ -39,14 +39,20 @@ else:
 
 pprint.pprint(books_total_term_counts)
 
-    
+
+def get_total_term_count(book_id):
+    book_doc = db["books"].find({"_id": book_id})
+    terms_count = book_doc["terms_count"]
+    return terms_count
+
+
 def tfidf(book_id, book_term_freq, term_book_count):
     """ 
     Calculate
     TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
     IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
     """
-    tf = float(book_term_freq) / books_total_term_counts.get(book_id, 10000) # temporary value
+    tf = float(book_term_freq) / get_total_term_count(book_id)
     idf = math.log(float(TOTAL_NUMBER_OF_BOOKS) / term_book_count)
 
     return tf * idf
