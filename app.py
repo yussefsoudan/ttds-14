@@ -119,9 +119,9 @@ def get_books_from_terms():
 # this tries out ranked_quote_retrieval function from ranking.py
 # In this function, both simple quote search and phrase search will be handled
 @app.route('/quotes_search', methods=['POST'])
-def get_quotes_from_terms(details):
+def get_quotes_from_terms():
     # print("request in get_quotes_from_terms is {}".format(request.get_json()))
-    # details = request.get_json()
+    details = request.get_json()
     
     # quote contains character " twice and they are at the beginning / end of the quote => phrase search is true
     phrase_search = False
