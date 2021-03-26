@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 import nltk 
 nltk.download('stopwords')
 from nltk.stem.porter import *
-from spellchecker import SpellChecker
+# from spellchecker import SpellChecker
 
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
@@ -19,9 +19,9 @@ CORS(app)
 db = MongoDB()
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
-spell = SpellChecker()
+# spell = SpellChecker()
 
-def merge_dict_lists (l1,l2,key):
+def merge_dict_lists(l1,l2,key):
     merged = l1
     for n, item1 in enumerate(l1):
         for item2 in l2:
@@ -40,23 +40,23 @@ def serve():
     return "Server is working."
 
 
-@app.route('/spellcheck', methods=['POST'])
-def get_most_likely_terms():
-    print("Spell-checking: ", request.get_json())
-    search_text = request.get_json()["search_text"]
-    terms = re.findall(r'\w+', search_text)
-    correction_exists = False
-    corrected_text = ""
-    for term in terms:
-        correction = spell.correction(term)
-        if (correction != term):
-            correction_exists = True
-            corrected_text = search_text.replace(term, correction)
+# @app.route('/spellcheck', methods=['POST'])
+# def get_most_likely_terms():
+#     print("Spell-checking: ", request.get_json())
+#     search_text = request.get_json()["search_text"]
+#     terms = re.findall(r'\w+', search_text)
+#     correction_exists = False
+#     corrected_text = ""
+#     for term in terms:
+#         correction = spell.correction(term)
+#         if (correction != term):
+#             correction_exists = True
+#             corrected_text = search_text.replace(term, correction)
     
-    result = {}
-    result['corrected_text'] = corrected_text
-    result['correction_exists'] = correction_exists
-    return result
+#     result = {}
+#     result['corrected_text'] = corrected_text
+#     result['correction_exists'] = correction_exists
+#     return result
 
 
 @app.route('/get_all_authors', methods=['POST'])
@@ -119,10 +119,10 @@ def get_books_from_terms():
 # this tries out ranked_quote_retrieval function from ranking.py
 # In this function, both simple quote search and phrase search will be handled
 @app.route('/quotes_search', methods=['POST'])
-def get_quotes_from_terms():
-    print("request in get_quotes_from_terms is {}".format(request.get_json()))
-    details = request.get_json()
-
+def get_quotes_from_terms(details):
+    # print("request in get_quotes_from_terms is {}".format(request.get_json()))
+    # details = request.get_json()
+    
     # quote contains character " twice and they are at the beginning / end of the quote => phrase search is true
     phrase_search = False
     char_pos = [char.start() for char in re.finditer('"', details['quote'])]
@@ -137,27 +137,35 @@ def get_quotes_from_terms():
     if phrase_search:
         ranked_quote_ids = list(quote_phrase_search({"query": preprocessed_terms})) # phrase search returns set(quote_ids)
     else:
+        q_r_time = time.time()
         ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
                                             "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
                                            'min_rating': details['minRating']}) # ranked_quote_search returns list: [(quote_id, score)]
-        print("ranked quotes: {}".format(ranked_quotes))
+        print()
+        # print("ranked quotes: {}".format(ranked_quotes))
+        print("time taken for ranked_quote_retrieval: {}".format(time.time() - q_r_time))
+        print()
         ranked_quote_ids = [i[0] for i in ranked_quotes]
 
-    quotes_results = db.get_quotes_by_quote_id_list(ranked_quote_ids)
+    quotes = db.get_quotes_by_quote_id_list(ranked_quote_ids)
     
-    for i, dic_quote in enumerate(quotes_results):
+    quotes_results = []
+    for i, dic_quote in enumerate(quotes):
         dic_quote['quote_id'] = dic_quote.pop('_id')
+        quotes_results.append(dic_quote)
     
     # Get book Details for book_ids
     book_ids = ([dic['book_id'] for dic in quotes_results])
     books = db.get_books_by_book_id_list(book_ids)
+    books_results = []
     for dic_book in books:
         if dic_book is not None and 'book_id' not in dic_book:
             dic_book['book_id'] = dic_book.pop('_id')
+            books_results.append(dic_book)
 
     # Merge book Details with Quotes
     # Appending the book details to the quotes object
-    query_results = merge_dict_lists(quotes_results, books, 'book_id')
+    query_results = merge_dict_lists(quotes_results, books_results, 'book_id')
 
 
     result = {"books": query_results,"searchTerms":preprocessed_terms}
@@ -167,4 +175,9 @@ def get_quotes_from_terms():
 
 
 if __name__ == '__main__':
+    # start = time.time()
+    # details = {"quote": 'develop talent', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # result = get_quotes_from_terms(details)
+    # print(result)
+    # print("time taken: {}".format(time.time() - start))
     app.run(debug=True, port=5000)

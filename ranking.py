@@ -32,14 +32,14 @@ def get_common_documents(scored_docs_per_term):
             # Get the intersection of all quote_id or book_id between the terms of the query
             common_docs = common_docs.intersection(set(doc_scores.keys()))
 
-    print("Common docs",common_docs)
+    # print("Common docs",common_docs)
     for term, doc_scores in scored_docs_per_term.items():
         for doc_id, score in doc_scores.items():
             if doc_id in common_docs:
                 scored_docs[doc_id] = score if doc_id not in scored_docs else scored_docs[doc_id] + score
 
 
-    print("scored quotes",scored_docs)
+    # print("scored quotes",scored_docs)
     return scored_docs
 
 # ------------------- Book search and ranking --------------------------
@@ -108,16 +108,19 @@ def book_ranking_query_TFIDF(query_params):
         # it might return multiple Cursor objects 
         term_docs = db.get_books_by_term(term)
         total_book_count = 0
+        count_time = time.time()
         for term_doc in term_docs:
             # print(term_doc)
             total_book_count += len(term_doc['books'])
 
         print(f"Term {term} book count: {total_book_count}")
+        print("time to count: {}".format(time.time() - count_time))
 
         term_docs = db.get_books_by_term(term)
         # Compute
-        for idx,term_doc in enumerate(term_docs):
-            print(f"Index entry {idx} has {len(term_doc['books'])} books")
+        idx = 0
+        for term_doc in term_docs:
+            # print(f"Index entry {idx} has {len(term_doc['books'])} books")
             for book in term_doc['books']:
                 print("Book id ",book['_id'])
                 print("Book term frequency ",book['term_freq_in_book'])
@@ -127,20 +130,26 @@ def book_ranking_query_TFIDF(query_params):
                     book_term_freq = book['term_freq_in_book']
                     score = tfidf(book_id,book_term_freq,total_book_count)
 
-                    if book_id in scored_books_per_term[term] :
-                       scored_books_per_term[term][book_id] += score
-                    else:
-                        scored_books_per_term[term][book_id] = score
+                    if term in scored_books_per_term:
+                        if book_id in scored_books_per_term[term]:
+                            scored_books_per_term[term][book_id] += score
+                        else:
+                            scored_books_per_term[term][book_id] = score
+                    else: 
+                        helper = {book_id: score}
+                        scored_books_per_term[term] = helper
+      
             # Time control
             if time.time() - start_time > MAX_QUERY_TIME:
                 print(f"Time exceeded for index entry {idx}")
                 break
-
+            idx += 1
         # Time control
         if time.time() - start_time > MAX_QUERY_TIME:
             break
     
     scored_books = get_common_documents(scored_books_per_term)
+    
     return Counter(scored_books).most_common(20)
 
 
@@ -206,6 +215,7 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                 term_docs = db.get_docs_by_term(term, i, batch_size)
 
                 process_start = time.time()
+
                 for term_doc in term_docs:
                     if time.time() - term_start_time > MAX_TERM_TIME:
                         print("Time limit")
@@ -221,6 +231,7 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
 
                     # return
                     # print(term_doc['books'])
+                    book_loop_time = time.time()
                     for b,book in enumerate(term_doc['books']):
                         if relevant_books is not None and book['_id'] not in relevant_books:
                             continue
@@ -243,11 +254,13 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                             if time.time() - total_start_time > MAX_QUERY_TIME:
                                 scored_quotes = get_common_documents(scored_quotes_per_term)
                                 return Counter(scored_quotes).most_common(20)
+                    
+                    print("book loop time is {}".format(time.time() - book_loop_time))
+                print("process time is: {}".format(time.time() - process_start))
         except:
             pass
-    
-    scored_quotes = get_common_documents(scored_quotes_per_term)
 
+    scored_quotes = get_common_documents(scored_quotes_per_term)
     return Counter(scored_quotes).most_common(20)
 
 
@@ -274,8 +287,8 @@ def phrase_search(query_params):
         intermediate = set()
 
         # doing phrase search for pair of terms in phrase (so 1st,2nd / 1st,3rd / 1st,4th etc.)
-        documents_1 = db.get_docs_by_term(terms[0], 0, 200, sort=True) # get documents for first term
-        documents_2 = db.get_docs_by_term(terms[i], 0, 200, sort=True)
+        documents_1 = db.get_docs_by_term(terms[0], 0, 100, sort=True) # get documents for first term
+        documents_2 = db.get_docs_by_term(terms[i], 0, 100, sort=True)
         doc_1 = next(documents_1, None)
         doc_2 = next(documents_2, None)
 
@@ -429,13 +442,17 @@ def phrase_search(query_params):
     # results are tuples (book_id, quote_id)
     return results
     
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
     # db = MongoDB()
     # batch_size = 50
-    # query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
-    # start = time.time()
-    # ranked_books = book_ranking_query_TFIDF(query_params)
+    query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # query_params = {"query": ['develop', 'talent']}
+    start = time.time()
+    # tracker = ranking_query_BM25(query_params)
+
+    # tracker = phrase_search(query_params)
+    tracker = book_ranking_query_TFIDF(query_params)
     # ranked_book_ids = [i[0] for i in ranked_books]
     # books = db.get_books_by_book_id_list(ranked_book_ids) # returns list of book cursors
     # print(books.count())
@@ -447,4 +464,5 @@ def phrase_search(query_params):
     #         book_results.append(dic_book)
     # print()
     # print(list(book_results))
-    # print("time taken: {}".format(time.time() - start))
+    print(tracker)
+    print("time taken: {}".format(time.time() - start))
