@@ -18,7 +18,7 @@ def build_book_index(): # each term will have 200 docs max
     DB_NAME='TTDS' 
     DB_HOST='188.166.173.191'
     PORT = '27017'
-    client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
+    client = pymongo.MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
     db = client["TTDS"]
     booksCollec = db["books"]
     loadSize = 1000
