@@ -7,7 +7,10 @@ import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
-
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
 
 //  props will be a list of book objects
 export default function ResultPage({results, searchTerms}) {
@@ -37,10 +40,12 @@ export default function ResultPage({results, searchTerms}) {
           setState({...state,offset:offset})
         }
 
-        const handleSort = (value) => {
+        const handleSort = (key,value) => {
           console.log("Sort")
           var arr = state.data
-          arr = sortByKey(arr,"averageRating")
+          arr = sortByKey(arr,key)
+
+          // arr = sortByKey(arr,"averageRating")
           setState({...state,sort:value,data:arr,sorting:false})
           console.log("Sorted results",state.data)
         }
@@ -88,14 +93,39 @@ export default function ResultPage({results, searchTerms}) {
               </Grid>
               }
 
-              <Grid item xs={2} >
+              {/* <Grid item xs={2} >
                 <FormControlLabel
-                control={<Switch checked={state.sort} onChange={e => handleSort(e.target.checked)} name="sort" color="primary"/>}
+                control={<Switch checked={state.sort} onChange={e => handleSort("averageRating",e.target.checked)} name="sort" color="primary"/>}
                 label="Average Rating"
                 labelPlacement="End"
                 />
               </Grid>
-            </Grid>)}
+            </Grid>          */}
+
+            <Grid item xs={2}>
+            <FormControl >
+                <InputLabel id="genre">Sort by</InputLabel>
+                <Select
+                  labelId="sort-selcet"
+                  id="sort-select"
+
+                  value={state.genre}
+                  onChange={e => handleSort(e.target.value,true)}
+                >
+                  <MenuItem value={"title"}>Book title</MenuItem>
+                  <MenuItem value={"averageRating"}>Average Rating</MenuItem>
+                  <MenuItem value={"pageCount"}>Page count</MenuItem>
+
+                  {/* <MenuItem value={30}>Thirty</MenuItem> */}
+                </Select>
+            </FormControl>
+            </Grid>
+            </Grid>
+            )        
+            
+            
+            
+            }
 
 
 
