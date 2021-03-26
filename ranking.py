@@ -106,7 +106,7 @@ def get_scaled_common_documents(scored_docs_per_term):
         # Iterate the books for the selected terms 
         for i,term in enumerate(terms):
             doc_scores = scored_docs_per_term[term]
-            # print(f"Term {term} has {len(doc_scores)} books")
+            print(f"Term {term} has {len(doc_scores)} books")
             if i ==0:
                 common_docs = set(doc_scores.keys())
                 # print(f"Common docs for term {term} are currently {len(common_docs)} ")
@@ -188,7 +188,7 @@ def book_ranking_query_TFIDF(query_params):
         # documents in this case are the book_titles, or books
 
         doc_nums_term = term_doc['term_freq'] 
-
+        
         for book in term_doc['books']:
             # print("Book id",book['_id'])
             # print("Book term frequency",book['term_freq_in_book'])
@@ -202,6 +202,10 @@ def book_ranking_query_TFIDF(query_params):
                     scored_books_per_term[term][book_id] += score
                 else:
                     scored_books_per_term[term][book_id] = score
+       
+        if len(scored_books_per_term[term].keys()) == 0:
+            print(f"term {term} had 0 books")
+            del scored_books_per_term[term]
 
         # Time control
         if time.time() - start_time > MAX_QUERY_TIME:
