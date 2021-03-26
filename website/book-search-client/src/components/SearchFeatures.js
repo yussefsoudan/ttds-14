@@ -153,7 +153,7 @@ const SearchFeatures = forwardRef((props,ref) => {
          <Grid container item xs={12} spacing={3}>
 
          
-           <Grid container item xs={4}>
+           {/* <Grid container item xs={4}>
              <FormControl className={classes.formControl}>
                  <InputLabel id="year-from">Year From</InputLabel>
                  <Select
@@ -172,9 +172,20 @@ const SearchFeatures = forwardRef((props,ref) => {
                              ))}
                  </Select>
              </FormControl>
-           </Grid>
+           </Grid> */}
+           <Grid container item xs={4} >
+            <TextField 
+              className={classes.formControl} 
+              label="Year From"
+              labelId="year-from-select"
+              id="year-from-select"
+              rowsMax={1}
+              value={state.yearFrom}
+              onChange={e => handleChange('yearFrom', e.target.value != '' ? parseInt(e.target.value) : '')}
+              ></TextField>
+            </Grid>
 
-           <Grid container item xs={4}>
+           {/* <Grid container item xs={4}>
              <FormControl className={classes.formControl}>
                  <InputLabel id="year-to">Year To</InputLabel>
                  <Select
@@ -193,7 +204,19 @@ const SearchFeatures = forwardRef((props,ref) => {
                              ))}
                  </Select>
              </FormControl>
-           </Grid>
+           </Grid> */}
+
+           <Grid container item xs={4} >
+            <TextField 
+              className={classes.formControl} 
+              label="Year To"
+              labelId="year-to-select"
+              id="year-to-select"
+              rowsMax={1}
+              value={state.yearTo}
+              onChange={e => handleChange('yearTo', e.target.value != '' ? parseInt(e.target.value) : '')}
+              ></TextField>
+            </Grid>
 
            <Grid container item xs={4}>
              <FormControl className={classes.formControl}>

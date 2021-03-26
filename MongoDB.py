@@ -49,12 +49,14 @@ class MongoDB:
         # need the entire object to retrieve the associated books later
         return self.quotes.find({"_id": {"$in": quote_ids}})
 
-    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000, sort = False):
-        # print("Get documents by term")
+    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000, sort: bool = False):
+        print("Get documents by term")
         docs_for_term = self.inverted_index.find({"term": term})
         if sort:
             docs_for_term = docs_for_term.sort('books.0._id')
         docs_for_term = docs_for_term.skip(skip).limit(limit)
+        if sort:
+            docs_for_term = docs_for_term.sort('books.0._id')
         return docs_for_term
     
     def get_books_by_term(self, term: str):

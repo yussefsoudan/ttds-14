@@ -11,6 +11,7 @@ import nltk
 nltk.download('stopwords')
 from nltk.stem.porter import *
 from spellchecker import SpellChecker
+from PyDictionary import PyDictionary
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
@@ -19,6 +20,8 @@ db = MongoDB()
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 spell = SpellChecker()
+synonym_dict = PyDictionary()
+
 
 def merge_dict_lists(l1,l2,key):
     merged = l1
@@ -34,6 +37,15 @@ def preprocess(quote, remove_stop_words=True):
         return [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote)]
     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote) if not token.lower() in stopSet]
     return terms
+
+
+def get_synonyms(terms):
+    result = {}
+    for term in terms:
+        synonyms = synonym_dict.synonym(term)
+        result[term] = synonyms
+    return result
+
 
 @app.route('/')
 def serve():
@@ -64,7 +76,7 @@ def get_most_likely_terms():
 def get_all_authors():
     print("Finding all author names")
     authors = db.get_all_authors()
-    print("Authors: ", authors)
+    # print("Authors: ", authors)
     return {"authors": authors}
 
 
@@ -72,7 +84,7 @@ def get_all_authors():
 def get_all_book_titles():
     print("Finding all book titles")
     book_titles = db.get_all_book_titles()
-    print("Book titles: ", book_titles)
+    # print("Book titles: ", book_titles)
     return {"book_titles": book_titles}
 
 
@@ -92,6 +104,7 @@ def get_books_from_terms():
 
     # Preprocess the quote 
     preprocessed_terms = preprocess(details["quote"])
+    synonyms = get_synonyms(details["quote"])  # {term:[synonym_list], ...}
     print("preprocessed terms",preprocessed_terms)
 
     ranked_books = ranked_book_search({"query":preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],

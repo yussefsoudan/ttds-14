@@ -116,7 +116,7 @@ export default function SearchBar(props) {
             </Typography>
 
             {/* Search features component  */}
-            <SearchFeatures ref= {ref} handleChange = {handleSearchFeaturesChange}  authors={props.authors} book_titles={props.book_titles} />
+            <SearchFeatures ref= {ref} handleChange={handleSearchFeaturesChange}  authors={props.authors} book_titles={props.book_titles} />
 
             {/* Buttons */}
             <div className={classes.heroButtons}>
