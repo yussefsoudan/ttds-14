@@ -314,15 +314,15 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                                 else:
                                     scored_quotes_per_term[term][quote_id] = score
                                 # scored_quotes[quote_id] = score
-                            if time.time() - total_start_time > MAX_QUERY_TIME:
+                            if time.time() - total_start_time > MAX_QUERY_TIME or len(scored_quotes_per_term[term].keys()) > 2000: # Brings time for hello from 7s to 0.3s
                                 scored_quotes = get_common_documents(scored_quotes_per_term)
-                                return Counter(scored_quotes).most_common(20)
+                                return Counter(scored_quotes).most_common(100)
         except:
             pass
     
     scored_quotes = get_common_documents(scored_quotes_per_term)
 
-    return Counter(scored_quotes).most_common(20)
+    return Counter(scored_quotes).most_common(100)
 
 
 def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
@@ -344,9 +344,10 @@ def phrase_search(query_params):
     terms_with_pos = query_params['query'] # tuple (term, pos_in_all_terms)
     all_terms = query_params['all_terms'] 
     start_time = time.time()
+
     # e.g. wind and rain => [(wind, 0), (rain, 2)]
     for i in range(1, len(terms_with_pos)):
-        intermediate_counter = Counter()
+        intermediate_counter = Counter() # 
         intermediate_set = set()
         # doing phrase search for pair of terms in phrase (so 1st,2nd / 1st,3rd / 1st,4th etc.)
         documents_1 = db.get_docs_by_term(terms_with_pos[0][0], 0, 100, sort=True) # get documents for first term
@@ -519,7 +520,7 @@ def phrase_search(query_params):
                         # print("book ids didnt match and moved doc 1 forward, reached None; break")
                         break
 
-            if break_doc_loop or time.time() - doc_time > 5:
+            if break_doc_loop or time.time() - doc_time > 10:
                 # print("one of the previous while loops set break_doc_loop to true, break")
                 break
                 
@@ -542,6 +543,7 @@ def phrase_search(query_params):
                     terms_split = regexForPos.split(quote.lower())
                     # print("terms_split: {}".format(terms_split))
 
+                    # 
                     for (pos_1, pos_2) in intermediate_counter[quote_id]:
                         check = False
                         for j in range(1, diff):
