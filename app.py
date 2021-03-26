@@ -151,7 +151,7 @@ def get_quotes_from_terms():
         phrase_terms = []
         for term in preprocessed_terms:
             phrase_terms.append((term, all_terms.index(term))) # assumes term only appears once in the query
-        ranked_quote_ids = list(quote_phrase_search({"query": phrase_terms})) # phrase search returns set(quote_ids)
+        ranked_quote_ids = quote_phrase_search({"query": phrase_terms}) # phrase search returns set(quote_ids)
     else:
         q_r_time = time.time()
         ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
@@ -189,21 +189,20 @@ def get_quotes_from_terms():
     # print("returning {} from get_quotes_from_terms".format(result))
     return result
 
+def test_ranking_method():
+    start = time.time()
+    details = {"quote": 'wind and rain', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # examples: wind and rain, yanked the duct tape off, watched it melt, pick up the phone
+    preprocessed_terms = preprocess(details['quote'])
+    all_terms = preprocess(details['quote'], remove_stop_words=False)
+    phrase_terms = []
+    for term in preprocessed_terms:
+        phrase_terms.append((term, all_terms.index(term))) 
+    print("phrase terms: {}".format(phrase_terms))
+    tracker = phrase_search({'query': phrase_terms, "all_terms": all_terms})
+    print(tracker)
+    print("time taken: {}".format(time.time() - start))
 
-if __name__ == '__main__':
-    # populate_terms_count_dictionary()
-    # start = time.time()
-    # details = {"quote": 'wind and rain', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
-    # # result = get_books_from_terms(details)
-    # # print(result)
-    # # print("time taken: {}".format(time.time() - start))
-    # preprocessed_terms = preprocess(details['quote'])
-    # all_terms = preprocess(details['quote'], remove_stop_words=False)
-    # phrase_terms = []
-    # for term in preprocessed_terms:
-    #     phrase_terms.append((term, all_terms.index(term))) 
-    # print("phrase terms: {}".format(phrase_terms))
-    # tracker = phrase_search({'query': phrase_terms, "all_terms": all_terms})
-    # print(tracker)
-    # print("time taken: {}".format(time.time() - start))
+if __name__ == '__main__':    
+    # test_ranking_method() # UNCOMMENT TO TEST PHRASE SEARCH
     app.run(debug=True, port=5000)
