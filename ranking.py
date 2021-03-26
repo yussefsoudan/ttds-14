@@ -13,9 +13,17 @@ import pymongo
 from collections import defaultdict
 import pprint
 from collections import Counter
-
+import re
 
 db = MongoDB()
+books_term_count = Counter()
+
+def populate_terms_count_dictionary():
+    books = db.books
+    all_books = books.find({}, {"terms_count": 1})
+
+    for book in all_books:
+        books_term_count[book['_id']] = book['terms_count'] if book['terms_count'] > 0 else 10000
 
 
 # This function is responsible for taking a dictionary of the form
@@ -65,15 +73,17 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 # pprint.pprint(books_total_term_counts)
 
 
-def get_total_term_count(book_id):
-    # Technically this should return only one document back
-    book_docs = db.books.find({"_id": book_id})
-    for book_doc in book_docs:
-        terms_count = book_doc["terms_count"]
-        if terms_count ==0:
-            print(f"Term counts for book {book_id} is {terms_count}")
-            return 1000
-        return terms_count
+# def get_total_term_count(book_id):
+#     # Technically this should return only one document back
+#     book_doc = next(db.books.find({"_id": book_id}))
+#     terms_count = book_doc["terms_count"]
+#     return (terms_count if terms_count != 0 else 1000)
+    # for book_doc in book_docs:
+        
+    #     if terms_count ==0:
+    #         print(f"Term counts for book {book_id} is {terms_count}")
+    #         return 1000
+    #     return terms_count
 
 
 def tfidf(book_id, book_term_freq, term_book_count):
@@ -82,7 +92,7 @@ def tfidf(book_id, book_term_freq, term_book_count):
     TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
     IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
     """
-    tf = float(book_term_freq) / get_total_term_count(book_id)
+    tf = float(book_term_freq) / books_term_count[book_id]
     idf = math.log(float(TOTAL_NUMBER_OF_BOOKS) / term_book_count)
 
     return tf * idf
@@ -113,8 +123,8 @@ def book_ranking_query_TFIDF(query_params):
             # print(term_doc)
             total_book_count += len(term_doc['books'])
 
-        print(f"Term {term} book count: {total_book_count}")
-        print("time to count: {}".format(time.time() - count_time))
+        # print(f"Term {term} book count: {total_book_count}")
+        # print("time to count: {}".format(time.time() - count_time))
 
         term_docs = db.get_books_by_term(term)
         # Compute
@@ -125,11 +135,14 @@ def book_ranking_query_TFIDF(query_params):
                 print("Book id ",book['_id'])
                 print("Book term frequency ",book['term_freq_in_book'])
                 book_id = book['_id']
-
+                
                 if relevant_books is None or book_id in relevant_books: 
+                    
                     book_term_freq = book['term_freq_in_book']
-                    score = tfidf(book_id,book_term_freq,total_book_count)
-
+                    book_time = time.time()
+                    score = tfidf(book_id,book_term_freq, total_book_count)
+                    # print("book time is: {}".format(time.time() - book_time))
+                    
                     if term in scored_books_per_term:
                         if book_id in scored_books_per_term[term]:
                             scored_books_per_term[term][book_id] += score
@@ -138,7 +151,8 @@ def book_ranking_query_TFIDF(query_params):
                     else: 
                         helper = {book_id: score}
                         scored_books_per_term[term] = helper
-      
+                    
+                
             # Time control
             if time.time() - start_time > MAX_QUERY_TIME:
                 print(f"Time exceeded for index entry {idx}")
@@ -150,7 +164,7 @@ def book_ranking_query_TFIDF(query_params):
     
     scored_books = get_common_documents(scored_books_per_term)
     
-    return Counter(scored_books).most_common(20)
+    return Counter(scored_books).most_common(100)
 
 
 
@@ -162,7 +176,6 @@ TOTAL_NUMBER_OF_SENTENCES = 50630265  #TODO NEEDS UPDATE
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
-
 
 
 # def get_common_documents(scored_quotes_per_term):
@@ -198,18 +211,18 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     if any([query_params['author'], query_params['bookTitle'], query_params['genre'], int(query_params['min_rating']) > 1,
             int(query_params['yearTo']) < 2021, int(query_params['yearFrom']) > 1990]):
         relevant_books = db.get_filtered_books_by_adv_search(query_params)
-    print("Terms",terms)
+    # print("Terms",terms)
 
     doc_nums = TOTAL_NUMBER_OF_SENTENCES
     total_start_time = time.time()
     for term in terms:
         scored_quotes_per_term[term] = {}
-        print("Term:",term)
+        # print("Term:",term)
         term_start_time = time.time()
         try:
             # iterate documents of this term by batches
-            for i in range(0, MAX_INDEX_SPLITS, batch_size):
-                print("I=",i)
+            for i in range(0, 50, batch_size): #MAX_INDEX_SPLITS
+                # print("I=",i)
                 # returns cursor object
                 # will return objects with id:term
                 term_docs = db.get_docs_by_term(term, i, batch_size)
@@ -218,7 +231,7 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
 
                 for term_doc in term_docs:
                     if time.time() - term_start_time > MAX_TERM_TIME:
-                        print("Time limit")
+                        # print("Time limit")
                         break
                         
                     # print("Term doc")
@@ -235,6 +248,8 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                     for b,book in enumerate(term_doc['books']):
                         if relevant_books is not None and book['_id'] not in relevant_books:
                             continue
+
+                        quote_loop_time = time.time()
                         for q,quote in enumerate(book['quotes']):
                             # how many times the term appears in the quote
                             term_freq = len(quote['pos']) #TODO CURRENTLY THIS IS 0 ALL THE TIME !!!!
@@ -245,23 +260,23 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                             # print("Term frequency",term_freq)
                             # print("Document length of current quote",dl)
                             score = score_BM25(doc_nums, doc_nums_term, term_freq, k1=1.2, b=0.75, dl=dl, avgdl=4.82) if dl < 100000 else 0
+
                             if score > 0:
                                 if quote_id in scored_quotes_per_term[term]:
                                     scored_quotes_per_term[term][quote_id] += score
                                 else:
                                     scored_quotes_per_term[term][quote_id] = score
-                                # scored_quotes[quote_id] = score
                             if time.time() - total_start_time > MAX_QUERY_TIME:
                                 scored_quotes = get_common_documents(scored_quotes_per_term)
                                 return Counter(scored_quotes).most_common(20)
-                    
-                    print("book loop time is {}".format(time.time() - book_loop_time))
-                print("process time is: {}".format(time.time() - process_start))
+                #         print("quote loop time is {}".format(time.time() - quote_loop_time))
+                #     print("book loop time is {}".format(time.time() - book_loop_time))
+                # print("process time is: {}".format(time.time() - process_start))
         except:
             pass
 
     scored_quotes = get_common_documents(scored_quotes_per_term)
-    return Counter(scored_quotes).most_common(20)
+    return Counter(scored_quotes).most_common(100)
 
 
 def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
@@ -280,15 +295,23 @@ def quote_phrase_search(query):
 
 def phrase_search(query_params): 
     results = set()
-    terms = query_params['query']
+    terms_with_pos = query_params['query']
+    all_terms = query_params['all_terms']
     start_time = time.time()
 
-    for i in range(1, len(terms)):
+    for i in range(1, len(terms_with_pos)):
         intermediate = set()
 
         # doing phrase search for pair of terms in phrase (so 1st,2nd / 1st,3rd / 1st,4th etc.)
-        documents_1 = db.get_docs_by_term(terms[0], 0, 100, sort=True) # get documents for first term
-        documents_2 = db.get_docs_by_term(terms[i], 0, 100, sort=True)
+        documents_1 = db.get_docs_by_term(terms_with_pos[0][0], 0, 100, sort=True) # get documents for first term
+        documents_2 = db.get_docs_by_term(terms_with_pos[i][0], 0, 100, sort=True)
+        if documents_1.count() == 0 or documents_2.count() == 0:
+            print("one of the documents returned none")
+            break
+        diff = terms_with_pos[i][1] - terms_with_pos[0][1] 
+        stop_word_check = True if diff != i else False
+        print("stop_word_check: {}".format(stop_word_check))
+        print("diff considered now: {}".format(diff))
         doc_1 = next(documents_1, None)
         doc_2 = next(documents_2, None)
 
@@ -303,8 +326,6 @@ def phrase_search(query_params):
         doc_time = time.time()
 
         while doc_1 is not None and doc_2 is not None:
-            if time.time() - start_time > 10:
-                break
             book_loop_time = time.time()
             # increment book position of the second doc (corresponding to second term) until 
             # second term's book id >= first term's book id
@@ -356,7 +377,7 @@ def phrase_search(query_params):
                 # print("quote_2_id is: {}".format(doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id']))
 
                 if not break_doc_loop and doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'] == doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id']:
-                    # print("FOUND EQUAL QUOTE ID: {}".format(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
+                    print("FOUND EQUAL QUOTE ID: {}".format(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
                     find_pos_time = time.time()
                     
                     pos_1_list = doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['pos']
@@ -365,9 +386,29 @@ def phrase_search(query_params):
                     pos_check = [int(x1) - int(x2) for (x1, x2) in zip(pos_2_list, pos_1_list)]
 
                     # this checks if it's a phrase occurring in the common book + common quote
-                    if i in pos_check:
-                        intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
-                    
+                    if diff in pos_check:
+                        diff_time = time.time()
+                        # takes into account stop words in between - check if stop words match up
+                        if diff > 1 and stop_word_check:
+                            quote = db.get_quote_from_id(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                            add_to_intermediate = True
+
+                            # for each stop word in between
+                            for j in range(1, diff):
+                                stop_word = all_terms[terms_with_pos[0][1] + j]
+                                print("stop word is {}".format(stop_word))
+                                # get the positions in the quote
+                                stop_word_pos = [index+1 for (index, token) in enumerate(re.findall(r'\w+',quote['quote'])) if token == stop_word]
+                                print("stop_word_pos: {}".format(stop_word_pos))
+                                print("pos_1_list: {}".format(pos_1_list))
+                                if j not in [int(x1) - int(x2) for (x1, x2) in zip(stop_word_pos, pos_1_list)]:
+                                    add_to_intermediate = False
+
+                            if add_to_intermediate:
+                                intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                        else:
+                            intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                        print("time to check all the diffs is {}".format(time.time() - diff_time))
                     quote_pos_1 += 1
                     # if quotes array exceeded -> move to next book in books array -> if books array exceeded
                     # -> move to next doc in the returned documents -> if doc is None (end of documents reached), break
@@ -417,16 +458,17 @@ def phrase_search(query_params):
                         # print("book ids didnt match and moved doc 1 forward, reached None; break")
                         break
 
-            if break_doc_loop:
+            if break_doc_loop or time.time() - start_time > 20:
                 # print("one of the previous while loops set break_doc_loop to true, break")
                 break
+                
 
         # for each pair of terms (e.g. 1st,2nd), intersect with what has been found so far
         # e.g. 1st,2nd returns a certain intermediate set of quote ids (containing pos diff 1 for 1st,2nd terms)
         # 1st,3rd returns a certain intermediate set of quote ids, (containing pos diff 2 for 1st,3rd terms)
         # we want intersection of the two to ensure quotes returned contains phrase 1st,2nd,3rd
         if len(intermediate) != 0:
-            # print("intermediate is: {}".format(intermediate))
+            print("intermediate is: {}".format(intermediate))
             if len(results) == 0:
                 results = intermediate
             else:
@@ -434,35 +476,24 @@ def phrase_search(query_params):
                 results = results.intersection(intermediate)
             # print("doc time: {}".format(time.time() - doc_time))
         else:
-            # print("none of this phrase found")
+            print("none of this phrase found")
             results = set()
             break   
     
     # print("results are: {}".format(results))
-    # results are tuples (book_id, quote_id)
     return results
     
 if __name__ == '__main__':
+    # populate_time = time.time()
+    # populate_terms_count_dictionary()
+    # print("populated dictionary and took {} time".format(time.time() - populate_time))
+    # print()
 
-    # db = MongoDB()
-    # batch_size = 50
-    query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
-    # query_params = {"query": ['develop', 'talent']}
+    # query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    query_params = {"query": ['wind', 'and', 'rain']}
     start = time.time()
     # tracker = ranking_query_BM25(query_params)
-
-    # tracker = phrase_search(query_params)
-    tracker = book_ranking_query_TFIDF(query_params)
-    # ranked_book_ids = [i[0] for i in ranked_books]
-    # books = db.get_books_by_book_id_list(ranked_book_ids) # returns list of book cursors
-    # print(books.count())
-    # print()
-    # book_results = []
-    # for dic_book in books:
-    #     if dic_book is not None and dic_book.get('book_id') is None:  # book_id may already be added if different quotes share the same book!
-    #         dic_book['book_id'] = dic_book.pop('_id')
-    #         book_results.append(dic_book)
-    # print()
-    # print(list(book_results))
+    tracker = phrase_search(query_params)
+    # tracker = book_ranking_query_TFIDF(query_params)
     print(tracker)
     print("time taken: {}".format(time.time() - start))

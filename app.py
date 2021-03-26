@@ -12,7 +12,6 @@ nltk.download('stopwords')
 from nltk.stem.porter import *
 # from spellchecker import SpellChecker
 
-
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
 
@@ -30,7 +29,9 @@ def merge_dict_lists(l1,l2,key):
     return merged
 
 
-def preprocess(quote):
+def preprocess(quote, remove_stop_words=True):
+    if not remove_stop_words:
+        return [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote)]
     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote) if not token.lower() in stopSet]
     return terms
 
@@ -119,9 +120,9 @@ def get_books_from_terms():
 # this tries out ranked_quote_retrieval function from ranking.py
 # In this function, both simple quote search and phrase search will be handled
 @app.route('/quotes_search', methods=['POST'])
-def get_quotes_from_terms(details):
-    # print("request in get_quotes_from_terms is {}".format(request.get_json()))
-    # details = request.get_json()
+def get_quotes_from_terms(): 
+    print("request in get_quotes_from_terms is {}".format(request.get_json()))
+    details = request.get_json()
     
     # quote contains character " twice and they are at the beginning / end of the quote => phrase search is true
     phrase_search = False
@@ -130,12 +131,14 @@ def get_quotes_from_terms(details):
         if char_pos[0] == 0 and char_pos[1] == len(details['quote']) - 1:
             phrase_search = True
 
-    # Preprocess the quote
     preprocessed_terms = preprocess(details["quote"])
     print("preprocessed terms",preprocessed_terms)
-
     if phrase_search:
-        ranked_quote_ids = list(quote_phrase_search({"query": preprocessed_terms})) # phrase search returns set(quote_ids)
+        all_terms = preprocess(details['quote'], remove_stop_words=False)
+        phrase_terms = []
+        for term in preprocessed_terms:
+            phrase_terms.append((term, all_terms.index(term))) # assumes term only appears once in the query
+        ranked_quote_ids = list(quote_phrase_search({"query": phrase_terms})) # phrase search returns set(quote_ids)
     else:
         q_r_time = time.time()
         ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
@@ -175,9 +178,19 @@ def get_quotes_from_terms(details):
 
 
 if __name__ == '__main__':
-    # start = time.time()
-    # details = {"quote": 'develop talent', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
-    # result = get_quotes_from_terms(details)
+    # populate_terms_count_dictionary()
+    start = time.time()
+    details = {"quote": 'wind and rain', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # result = get_books_from_terms(details)
     # print(result)
     # print("time taken: {}".format(time.time() - start))
-    app.run(debug=True, port=5000)
+    preprocessed_terms = preprocess(details['quote'])
+    all_terms = preprocess(details['quote'], remove_stop_words=False)
+    phrase_terms = []
+    for term in preprocessed_terms:
+        phrase_terms.append((term, all_terms.index(term))) 
+    print("phrase terms: {}".format(phrase_terms))
+    tracker = phrase_search({'query': phrase_terms, "all_terms": all_terms})
+    print(tracker)
+    print("time taken: {}".format(time.time() - start))
+    # app.run(debug=True, port=5000)

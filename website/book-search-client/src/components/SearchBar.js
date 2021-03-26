@@ -104,7 +104,7 @@ export default function SearchBar(props) {
             multiline
             rowsMax={4}
             value={state.quote}
-            // onChange={handleChange}
+            onChange={handleChange}
             ></TextField>
 
             <Typography variant="h7" align="center" color="textSecondary" paragraph style={{"fontStyle" : "italic", "cursor" : "pointer"}} onClick={handleSpellCorrect}>
