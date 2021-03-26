@@ -341,17 +341,28 @@ def quote_phrase_search(query):
 
 def phrase_search(query_params): 
     results = set()
-    terms = query_params['query']
+    terms_with_pos = query_params['query'] # tuple (term, pos_in_all_terms)
+    all_terms = query_params['all_terms'] 
     start_time = time.time()
-
-    for i in range(1, len(terms)):
-        intermediate = set()
-
+    # e.g. wind and rain => [(wind, 0), (rain, 2)]
+    for i in range(1, len(terms_with_pos)):
+        intermediate_counter = Counter()
+        intermediate_set = set()
         # doing phrase search for pair of terms in phrase (so 1st,2nd / 1st,3rd / 1st,4th etc.)
-        documents_1 = db.get_docs_by_term(terms[0], 0, sort=True) # get documents for first term
-        documents_2 = db.get_docs_by_term(terms[i], 0, sort=True)
+        documents_1 = db.get_docs_by_term(terms_with_pos[0][0], 0, 100, sort=True) # get documents for first term
+        documents_2 = db.get_docs_by_term(terms_with_pos[i][0], 0, 100, sort=True)
+        # if documents_1.count() == 0 or documents_2.count() == 0:
+        #     print("one of the documents returned none")
+        #     break
+        diff = terms_with_pos[i][1] - terms_with_pos[0][1] 
+        stop_word_check = True if diff != i else False
+        print("stop_word_check: {}".format(stop_word_check))
+        print("diff considered now: {}".format(diff))
+
+        test_time = time.time()
         doc_1 = next(documents_1, None)
         doc_2 = next(documents_2, None)
+        print("time taken for this weird thing: {}".format(time.time() - test_time))
 
         # track the position of each book in the book arrays
         book_pos_1 = 0 
@@ -363,9 +374,7 @@ def phrase_search(query_params):
         break_doc_loop = False
         doc_time = time.time()
 
-        while doc_1 is not None and doc_2 is not None:
-            if time.time() - start_time > 10:
-                break
+        while doc_1 is not None and doc_2 is not None: 
             book_loop_time = time.time()
             # increment book position of the second doc (corresponding to second term) until 
             # second term's book id >= first term's book id
@@ -384,7 +393,7 @@ def phrase_search(query_params):
                         break_doc_loop = True
                         break   
             
-            # print("time for book loop: {}".format(time.time() - book_loop_time))
+            print("time for book loop: {}".format(time.time() - book_loop_time))
             # print("book_1_id is: {}".format(doc_1['books'][book_pos_1]['_id']))
             # print("book_2_id is: {}".format(doc_2['books'][book_pos_2]['_id']))
 
@@ -412,7 +421,7 @@ def phrase_search(query_params):
                                 break_doc_loop = True
                                 break        
                 
-                # print("time for quote loop: {}".format(time.time() - quote_loop_time))
+                print("time for quote loop: {}".format(time.time() - quote_loop_time))
                 # print("quote_1_id is: {}".format(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
                 # print("quote_2_id is: {}".format(doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id']))
 
@@ -422,13 +431,45 @@ def phrase_search(query_params):
                     
                     pos_1_list = doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['pos']
                     pos_2_list = doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['pos']
+                    # rain - wind
 
-                    pos_check = [int(x1) - int(x2) for (x1, x2) in zip(pos_2_list, pos_1_list)]
-
+                    add_to_set = False
+                    for (x1, x2) in zip(pos_2_list, pos_1_list):
+                        if int(x1) - int(x2) == diff:
+                            if not stop_word_check:
+                                add_to_set = True
+                            if doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'] in intermediate_counter:
+                                intermediate_counter[doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']].append((x2, x1))
+                            else:
+                                intermediate_counter[doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']] = [(x2, x1)]
+                    if add_to_set:
+                        intermediate_set.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                        
                     # this checks if it's a phrase occurring in the common book + common quote
-                    if i in pos_check:
-                        intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
-                    
+                    # if pos_check.get(diff) is not None:
+                    #     # takes into account stop words in between - check if stop words match up with whats in quote
+                    #     if stop_word_check:
+                            # intermediate_counter[doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']] = pos_check[diff]
+                            # quote = db.get_quote_from_id(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                            # add_to_intermediate = True
+
+                            # # for each stop word in between
+                            # # [wind, and, stop, words, rain]
+                            # for j in range(1, diff):
+                            #     stop_word = all_terms[terms_with_pos[0][1] + j]
+                            #     print("stop word is {}".format(stop_word))
+                            #     # get the positions in the quote
+                            #     stop_word_pos = [index+1 for (index, token) in enumerate(re.findall(r'\w+',quote['quote'])) if token == stop_word]
+                            #     print("stop_word_pos: {}".format(stop_word_pos))
+                            #     print("pos_1_list: {}".format(pos_1_list))
+                            #     if j not in [int(x1) - int(x2) for (x1, x2) in zip(stop_word_pos, pos_1_list)]:
+                            #         add_to_intermediate = False
+                            #         break
+
+                            # if add_to_intermediate:
+                            #     intermediate.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
+                        # else:
+                            # intermediate_set.add(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id'])
                     quote_pos_1 += 1
                     # if quotes array exceeded -> move to next book in books array -> if books array exceeded
                     # -> move to next doc in the returned documents -> if doc is None (end of documents reached), break
@@ -445,7 +486,7 @@ def phrase_search(query_params):
                                 # break_doc_loop = True
                                 break
                             
-                    # print("time spent finding position in quote: {}".format(time.time() - find_pos_time))
+                    print("time spent finding position in quote: {}".format(time.time() - find_pos_time))
                     
                 else:
                     # if quotes array exceeded -> move to next book in books array -> if books array exceeded
@@ -478,7 +519,7 @@ def phrase_search(query_params):
                         # print("book ids didnt match and moved doc 1 forward, reached None; break")
                         break
 
-            if break_doc_loop:
+            if break_doc_loop or time.time() - doc_time > 5:
                 # print("one of the previous while loops set break_doc_loop to true, break")
                 break
                 
@@ -487,28 +528,65 @@ def phrase_search(query_params):
         # e.g. 1st,2nd returns a certain intermediate set of quote ids (containing pos diff 1 for 1st,2nd terms)
         # 1st,3rd returns a certain intermediate set of quote ids, (containing pos diff 2 for 1st,3rd terms)
         # we want intersection of the two to ensure quotes returned contains phrase 1st,2nd,3rd
-        if len(intermediate) != 0:
-            # print("intermediate is: {}".format(intermediate))
-            if len(results) == 0:
-                results = intermediate
-            else:
-                # comm_keys = set(results.keys()).intersection(intermediate.keys())
-                results = results.intersection(intermediate)
+        # intermediate_counter: {quote_id: [(pos_1, pos_2), (pos_1, pos_2)]} where pos_2 - pos_1 = diff
+        if len(intermediate_set) != 0 or len(intermediate_counter) != 0:
+            chk_time = time.time()
+            if len(intermediate_counter) != 0:
+                quote_ids = list(intermediate_counter.keys())
+                quotes = db.get_quotes_by_quote_id_list(quote_ids)
+                regexForPos = re.compile("[\s.,;'\"\(\)\[\]]")
+                
+                for quote_obj in quotes:
+                    quote_id = quote_obj['_id']
+                    quote = quote_obj['quote']
+                    terms_split = regexForPos.split(quote.lower())
+                    # print("terms_split: {}".format(terms_split))
+
+                    for (pos_1, pos_2) in intermediate_counter[quote_id]:
+                        check = False
+                        for j in range(1, diff):
+                            stop_word = all_terms[terms_with_pos[0][1] + j]
+                            # print("terms_split[{}] for pos_1: {}".format(pos_1 + j, terms_split[pos_1 + j]))
+                            # print("terms_split[{}] for pos_2: {}".format(pos_2 - (diff - j), terms_split[pos_2 - (diff - j)]))
+                            # print()
+                            if terms_split[pos_1 + j] == stop_word and terms_split[pos_2 - (diff - j)] == stop_word:
+                                check = True
+                            else:
+                                check = False
+                                break
+                        if check:
+                            intermediate_set.add(quote_id)
+                            break
+            print("time taken for this: {}".format(time.time() - chk_time))
+            print('intermediate set is {}'.format(intermediate_set))
+            if len(intermediate_set) != 0:
+                # print("intermediate is: {}".format(intermediate_set))
+                if len(results) == 0:
+                    results = intermediate_set
+                else:
+                    # comm_keys = set(results.keys()).intersection(intermediate.keys())
+                    results = results.intersection(intermediate_set)
             # print("doc time: {}".format(time.time() - doc_time))
+        
         else:
             # print("none of this phrase found")
             results = set()
             break   
     
     # print("results are: {}".format(results))
-    # results are tuples (book_id, quote_id)
-    return results
+    return list(results)[:100]
     
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # populate_time = time.time()
     # populate_terms_count_dictionary()
     # print("populated dictionary and took {} time".format(time.time() - populate_time))
     # print()
 
-    db = MongoDB()
-    batch_size = 50
+    # query_params = {"query": ['develop', 'talent'], "author": "", 'bookTitle': '', 'genre': "", 'min_rating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # query_params = {"query": ['wind', 'and', 'rain']}
+    # start = time.time()
+    # # tracker = ranking_query_BM25(query_params)
+    # tracker = phrase_search(query_params)
+    # # tracker = book_ranking_query_TFIDF(query_params)
+    # print(tracker)
+    # print("time taken: {}".format(time.time() - start))
