@@ -161,8 +161,8 @@ def book_ranking_query_TFIDF(query_params):
     terms = original_terms + synonyms
 
     relevant_books = None
-    if any([query_params['author'], query_params['bookTitle'], query_params['genre'], int(query_params['min_rating']) > 1,
-            int(query_params['yearTo']) < 2021, int(query_params['yearFrom']) > 1990]):
+    if any([query_params['author'], query_params['bookTitle'], (query_params['genre'] != 'All' and query_params['genre'] != ''),
+            int(query_params['min_rating']) > 1, int(query_params['yearTo']) != 2021, int(query_params['yearFrom']) != 1990]):
         adv_time = time.time()
         relevant_books = db.get_filtered_books_by_adv_search(query_params)
         print("time taken for adv search: {}".format(time.time() - adv_time))
@@ -258,8 +258,8 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     scored_quotes_per_term = {} # term -> {q_id:score}
     terms = query_params['query']
     relevant_books = None
-    if any([query_params['author'], query_params['bookTitle'], query_params['genre'], int(query_params['min_rating']) > 1,
-            int(query_params['yearTo']) < 2021, int(query_params['yearFrom']) > 1990]):
+    if any([query_params['author'], query_params['bookTitle'], (query_params['genre'] != 'All' and query_params['genre'] != ''),
+            int(query_params['min_rating']) > 1, int(query_params['yearTo']) != 2021, int(query_params['yearFrom']) != 1990]):
         relevant_books = db.get_filtered_books_by_adv_search(query_params)
     print("Terms",terms)
 

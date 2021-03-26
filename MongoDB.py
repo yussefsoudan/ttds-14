@@ -69,13 +69,13 @@ class MongoDB:
 
     def get_filtered_books_by_adv_search(self, query):
         adv_options = {}
-        if int(query['yearTo']) < 2021 or int(query['yearFrom']) > 1990:
+        if int(query['yearTo']) != 2021 or int(query['yearFrom']) != 1990:
             adv_options.update({"publishedDate": {'$lt': query["yearTo"], '$gte': query["yearFrom"]}})
         if query['author']:
             adv_options.update({'authors': query['author']})
         if query['bookTitle']:
             adv_options.update({'title': query['bookTitle']})
-        if query['genre']:
+        if query['genre'] != 'All' and query['genre'] != '':
             adv_options.update({'categories': query['genre']})
         if query['min_rating'] != 1:
             adv_options.update({'$or': [{'averageRating': {'$gte': query['min_rating']}}, {'averageRating': ""}]})
