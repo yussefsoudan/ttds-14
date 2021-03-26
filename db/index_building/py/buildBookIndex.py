@@ -43,8 +43,6 @@ def build_book_index(): # each term will have 200 docs max
                 tempIndex[term]['term_freq'] += 1
                 tempIndex[term]['books'][b_id] = tempIndex[term]['books'].get(b_id, {'_id': b_id, 'title_len' : len(re.findall(r'\w+', b['title'])), 'term_freq_in_book_title': 0, 'pos': pos})
                 tempIndex[term]['books'][b_id]['term_freq_in_book_title'] += 1
-
-        books.clear()
         gc.collect()
 
     for value in tempIndex.values():
