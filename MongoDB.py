@@ -18,6 +18,7 @@ class MongoDB:
         self.books = db["books"]
         self.quotes = db["quotes"]
         self.inverted_index = db["invertedIndex"] 
+        self.book_inverted_index = db["bookInvertedIndex"]
         print("COUNT DOCS")
         print(db["invertedIndex"].count())
         # self.quotes.create_index('_id')
@@ -58,7 +59,8 @@ class MongoDB:
         return docs_for_term
     
     def get_books_by_term(self, term: str):
-        return self.inverted_index.find({"term": term}, {"books.quotes": 0})
+        return self.book_inverted_index.find({"term": term})
+
         # return self.inverted_index.aggregate([
         #     { "$project": { "books": { "$objectToArray": "$books" } } },
         #     { "$project": { "books.v.quotes": 0} }, 
