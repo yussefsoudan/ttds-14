@@ -11,7 +11,7 @@ import nltk
 nltk.download('stopwords')
 from nltk.stem.porter import *
 from spellchecker import SpellChecker
-from PyDictionary import PyDictionary
+# from PyDictionary import PyDictionary
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
@@ -20,7 +20,7 @@ db = MongoDB()
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 spell = SpellChecker()
-synonym_dict = PyDictionary()
+# synonym_dict = PyDictionary()
 
 
 def merge_dict_lists(l1,l2,key):
@@ -104,13 +104,13 @@ def get_books_from_terms():
 
     # Preprocess the quote 
     preprocessed_terms = preprocess(details["quote"])
-    synonyms = get_synonyms(details["quote"])  # {term:[synonym_list], ...}
+    # synonyms = get_synonyms(details["quote"])  # {term:[synonym_list], ...}
     print("preprocessed terms",preprocessed_terms)
 
     ranked_books = ranked_book_search({"query":preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
                                        "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
                                        'min_rating': details['minRating']}) # ranked_book_search returns list: [(book_id, score)]
-    print("ranked books: {}".format(ranked_books))
+    # print("ranked books: {}".format(ranked_books))
 
     # if we want book info apart from the book_ids we need to do another search - would this make sense?
     ranked_book_ids = [i[0] for i in ranked_books]
@@ -127,7 +127,7 @@ def get_books_from_terms():
     # Add the preprocessed terms for highlight
     result = {"books": book_results, "searchTerms":preprocessed_terms}
     print('-'*50)
-    print("returning {} from get_books_from_terms".format(result))
+    # print("returning {} from get_books_from_terms".format(result))
     return result
 
 # this tries out ranked_quote_retrieval function from ranking.py
