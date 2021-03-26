@@ -7,7 +7,7 @@ const DB_HOST='188.166.173.191'
 const PORT = '27017'
 const url = `mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${PORT}`;
 
-let updateBooksWithRatingsCount = async () => {
+let updateBooksWithDescriptions = async () => {
     let client = await MongoClient.connect(url, { useUnifiedTopology : true });
     let booksCollec = client.db("TTDS").collection("books");
     let numOfBooks = await booksCollec.countDocuments();
@@ -39,7 +39,7 @@ let updateBooksWithRatingsCount = async () => {
 
 }
 
-let getRatingsCount = async (ISBN, max_tries) => {
+let getBookDescription = async (ISBN, max_tries) => {
     let ratingsCount = "";
     let URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
     let endpoint = URL + ISBN;
@@ -99,9 +99,9 @@ let getRatingsCount = async (ISBN, max_tries) => {
 let run = async () => {
     let start = new Date().getTime();
     try {
-        await updateBooksWithRatingsCount();
+        await updateBooksWithDescriptions();
     } catch(err) {
-        console.log("Error in updateBooksWithRatingsCount(): ", err);
+        console.log("Error in updateBooksWithDescriptions(): ", err);
     }
     
     let end = new Date().getTime();
