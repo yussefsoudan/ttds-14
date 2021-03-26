@@ -25,7 +25,7 @@ def write_index():
                         books_inverted_index.insert_many(docs)
                         docs.clear() 
                         gc.collect()
-    inverted_index.create_index([("term", pymongo.ASCENDING)])
-    inverted_index.create_index([("books._id", pymongo.ASCENDING)])
+    books_inverted_index.create_index([("term", pymongo.ASCENDING)])
+    books_inverted_index.create_index([("books._id", pymongo.ASCENDING)])
 
 write_index()
