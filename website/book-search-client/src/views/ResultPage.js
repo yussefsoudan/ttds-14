@@ -11,9 +11,19 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  formControl: {
+      // margin: theme.spacing(1),
+      minWidth: 120,
+    },
+}));
+
 
 //  props will be a list of book objects
 export default function ResultPage({results, searchTerms}) {
+      const classes = useStyles();
 
       const [state, setState] = useState({
           data : [],
@@ -103,7 +113,7 @@ export default function ResultPage({results, searchTerms}) {
             </Grid>          */}
 
             <Grid item xs={2}>
-            <FormControl >
+            <FormControl className={classes.formControl}>
                 <InputLabel id="genre">Sort by</InputLabel>
                 <Select
                   labelId="sort-selcet"
