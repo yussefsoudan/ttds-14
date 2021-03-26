@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 import nltk 
 nltk.download('stopwords')
 from nltk.stem.porter import *
-# from spellchecker import SpellChecker
+from spellchecker import SpellChecker
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
@@ -18,7 +18,7 @@ CORS(app)
 db = MongoDB()
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
-# spell = SpellChecker()
+spell = SpellChecker()
 
 def merge_dict_lists(l1,l2,key):
     merged = l1
@@ -41,23 +41,23 @@ def serve():
     return "Server is working."
 
 
-# @app.route('/spellcheck', methods=['POST'])
-# def get_most_likely_terms():
-#     print("Spell-checking: ", request.get_json())
-#     search_text = request.get_json()["search_text"]
-#     terms = re.findall(r'\w+', search_text)
-#     correction_exists = False
-#     corrected_text = ""
-#     for term in terms:
-#         correction = spell.correction(term)
-#         if (correction != term):
-#             correction_exists = True
-#             corrected_text = search_text.replace(term, correction)
+@app.route('/spellcheck', methods=['POST'])
+def get_most_likely_terms():
+    print("Spell-checking: ", request.get_json())
+    search_text = request.get_json()["search_text"]
+    terms = re.findall(r'\w+', search_text)
+    correction_exists = False
+    corrected_text = ""
+    for term in terms:
+        correction = spell.correction(term)
+        if (correction != term):
+            correction_exists = True
+            corrected_text = search_text.replace(term, correction)
     
-#     result = {}
-#     result['corrected_text'] = corrected_text
-#     result['correction_exists'] = correction_exists
-#     return result
+    result = {}
+    result['corrected_text'] = corrected_text
+    result['correction_exists'] = correction_exists
+    return result
 
 
 @app.route('/get_all_authors', methods=['POST'])
@@ -179,18 +179,18 @@ def get_quotes_from_terms():
 
 if __name__ == '__main__':
     # populate_terms_count_dictionary()
-    start = time.time()
-    details = {"quote": 'wind and rain', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
-    # result = get_books_from_terms(details)
-    # print(result)
+    # start = time.time()
+    # details = {"quote": 'wind and rain', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 5, "yearFrom": '1998', "yearTo": '2020'}
+    # # result = get_books_from_terms(details)
+    # # print(result)
+    # # print("time taken: {}".format(time.time() - start))
+    # preprocessed_terms = preprocess(details['quote'])
+    # all_terms = preprocess(details['quote'], remove_stop_words=False)
+    # phrase_terms = []
+    # for term in preprocessed_terms:
+    #     phrase_terms.append((term, all_terms.index(term))) 
+    # print("phrase terms: {}".format(phrase_terms))
+    # tracker = phrase_search({'query': phrase_terms, "all_terms": all_terms})
+    # print(tracker)
     # print("time taken: {}".format(time.time() - start))
-    preprocessed_terms = preprocess(details['quote'])
-    all_terms = preprocess(details['quote'], remove_stop_words=False)
-    phrase_terms = []
-    for term in preprocessed_terms:
-        phrase_terms.append((term, all_terms.index(term))) 
-    print("phrase terms: {}".format(phrase_terms))
-    tracker = phrase_search({'query': phrase_terms, "all_terms": all_terms})
-    print(tracker)
-    print("time taken: {}".format(time.time() - start))
-    # app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000)
