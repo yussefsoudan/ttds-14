@@ -36,7 +36,7 @@ export default function SearchBar(props) {
         yearTo : 2021,
         yearFrom: 1990,
         minRating:1,
-        correction: ""
+        correction: "",
     });
 
 
@@ -100,7 +100,7 @@ export default function SearchBar(props) {
             <TextField 
             fullWidth 
             className={classes.margin} 
-            label="Type your quote..."
+            label={state.bookSearch ? "Type your book title terms..." :"Type your quote terms..."}
             multiline
             rowsMax={4}
             value={state.quote}

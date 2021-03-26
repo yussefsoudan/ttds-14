@@ -26,7 +26,7 @@ for(var i = 1990; i< 2022; i++){
 }
 
 
-let genres = ['Fiction','Biography & Autobiography','Juvenile Fiction','Poetry','Young Adult Fiction',
+let genres = ['All','Fiction','Biography & Autobiography','Juvenile Fiction','Poetry','Young Adult Fiction',
 'Philosophy','Young Adult Nonfiction','True Crime','Indic fiction (English)']
 
 const SearchFeatures = forwardRef((props,ref) => {
