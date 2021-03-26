@@ -1,6 +1,7 @@
 import pymongo 
 import gc 
 import pickle
+import os 
 
 def write_index():
     DB_PASS='thenittygrittyofELnitty'
