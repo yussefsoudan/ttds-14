@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 const MongoClient = require('mongodb').MongoClient;
 const DB_PASS='thenittygrittyofELnitty'
-const DB_USER='readerTTDS'
+const DB_USER='rootTTDS'
 const DB_NAME='TTDS' 
 const DB_HOST='188.166.173.191'
 const PORT = '27017'
