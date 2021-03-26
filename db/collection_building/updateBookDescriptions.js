@@ -76,7 +76,7 @@ let getBookDescription = async (ISBN, max_tries) => {
                 return ratingsCount;
             } else {
                 if (max_tries > 0) {
-                    return getRatingsCount(ISBN, max_tries - 1);
+                    return getBookDescription(ISBN, max_tries - 1);
                 } else {
                     return '';
                 }
@@ -89,7 +89,7 @@ let getBookDescription = async (ISBN, max_tries) => {
     }).catch((err) => {
         console.log("here for ", ISBN);
         if (max_tries > 0) {
-            return getRatingsCount(ISBN, max_tries - 1);
+            return getBookDescription(ISBN, max_tries - 1);
         } else {
             return '';
         }
