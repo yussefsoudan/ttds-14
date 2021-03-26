@@ -25,9 +25,11 @@ def build_book_index(): # each term will have 200 docs max
     tempIndex = dict()
     
     for r in range(0, 27):
+        
         lowerLimit = r * loadSize
         upperLimit = lowerLimit + loadSize
         books = booksCollec.find({"_id" : {"$lt" : upperLimit, "$gte" : lowerLimit}})
+        print("Processing books from {} to {}".format(lowerLimit, upperLimit))
         
         for b in books:
             b_id = b['_id']
