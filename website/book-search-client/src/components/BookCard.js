@@ -63,42 +63,27 @@ export default function BookCard({resultObj, searchTerms}) {
         authors += book.authors[i] + ", "
       }
     }
-    let bookDetails = <CardContent style={{"fontStyle" : "italic"}}>
+    let bookDetails = <div style={{"fontStyle" : "italic"}}>
                         <Typography gutterBottom variant="h6" component="h2"  >
                         Book description
                         </Typography>
-                        <Typography gutterBottom variant="h7" component="h4"  >
+                        <Typography gutterBottom variant="h7" component="h5"  >
                         {(book.description == undefined ||  book.description == null || book.description == '') ? 
-                        'No book description available.' : book.description}
-                        </Typography>
-                        <Typography gutterBottom variant="h6" component="h2"  >
-                        Book categories
-                        </Typography>
-                        <Typography gutterBottom variant="h7" component="h4"  >
-                         {book.categories}
-                        </Typography>
-                        <Typography gutterBottom variant="h6" component="h2"  >
-                        Number of pages 
-                        </Typography>
-                        <Typography gutterBottom variant="h7" component="h4" >
-                        {book.pageCount != "" ? book.pageCount : "No page count is available."}
-                        </Typography>
-                        <Typography gutterBottom variant="h6" component="h2"   >
-                        Published date
-                        </Typography>
-                        <Typography gutterBottom variant="h7" component="h4"    >
-                        {book.publishedDate != "" ? book.publishedDate : "No publication date is available."}
-                        </Typography>
-                        <Typography gutterBottom variant="h6" component="h2"   >
-                        ISBN
-                        </Typography>
-                        <Typography gutterBottom variant="h7" component="h4"   >
-                        {book['isbn-13']}
+                        'No book description available.' : <ShowMoreText
+                        /* Default options */
+                        lines={1}
+                        more='Show more'
+                        less='Show less'
+                        className='content-css'
+                        anchorClass='my-anchor-css-class'
+                        expanded={false}
+                        width={0}
+                        > {book.description}</ShowMoreText>}
                         </Typography>
                         <Typography gutterBottom variant="h6" component="h2"   >
                         Average rating
                         </Typography>
-                        <Typography gutterBottom variant="h7" component="h4"   >
+                        <Typography gutterBottom variant="h7" component="h5"   >
                           {book.averageRating != "" ?
                         <Stars
                         stars={book.averageRating}
@@ -110,10 +95,35 @@ export default function BookCard({resultObj, searchTerms}) {
                         <Typography gutterBottom variant="h6" component="h2"   >
                         Number of ratings
                         </Typography>
-                        <Typography gutterBottom variant="h7" component="h4"    >
+                        <Typography gutterBottom variant="h7" component="h5"    >
                         {book.ratingsCount != "" ? book.ratingsCount : "No ratings were given to this book."}
                         </Typography>
-                      </CardContent>
+                        <Typography gutterBottom variant="h6" component="h2"  >
+                        Book categories
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h5"  >
+                         {book.categories}
+                        </Typography>
+                        <Typography gutterBottom variant="h6" component="h2"  >
+                        Number of pages 
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h5" >
+                        {book.pageCount != "" ? book.pageCount : "No page count is available."}
+                        </Typography>
+                        <Typography gutterBottom variant="h6" component="h2"   >
+                        Published date
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h5"    >
+                        {book.publishedDate != "" ? book.publishedDate : "No publication date is available."}
+                        </Typography>
+                        <Typography gutterBottom variant="h6" component="h2"   >
+                        ISBN
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h5"   >
+                        {book['isbn-13']}
+                        </Typography>
+                        
+                      </div>
       let displayedQuote = bookDetails 
       if (quote.length > 300) {
         displayedQuote = <ShowMoreText
@@ -172,10 +182,13 @@ export default function BookCard({resultObj, searchTerms}) {
             <Typography gutterBottom component="h3" >
               {authors}
             </Typography>
+            <Typography gutterBottom component="h3" >
+              {displayedQuote == bookDetails ? displayedQuote : ""}
+            </Typography>
               
             <Typography gutterBottom component="h4" variant="h6" style={{"color" : "darkblue", "font-style": "italic"}} >
               
-            {displayedQuote}
+            {displayedQuote == bookDetails ? "" : displayedQuote}
               
             </Typography>
             <Button disableRipple size="small" color="primary" href={book.previewLink}  target="_blank" style={{'cursor' : 'pointer',  
@@ -203,7 +216,7 @@ export default function BookCard({resultObj, searchTerms}) {
             
             
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-              {(quote.length > 0) ? bookDetails : ""}
+              {(quote.length > 0) ? <CardContent>{bookDetails}</CardContent> : ""}
             </Collapse>
              :
             ""
