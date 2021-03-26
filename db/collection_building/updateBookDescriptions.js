@@ -67,13 +67,13 @@ let getBookDescription = async (ISBN, max_tries) => {
             }
              
             try {
-                ratingsCount = data['items'][item_idx]['volumeInfo']['description'] || '';
+                description = data['items'][item_idx]['volumeInfo']['description'] || '';
             } catch(err) {
-                ratingsCount = '';
+                description = '';
             }
 
             if (description != '' && description != null) {
-                return ratingsCount;
+                return description;
             } else {
                 if (max_tries > 0) {
                     return getBookDescription(ISBN, max_tries - 1);
@@ -88,6 +88,7 @@ let getBookDescription = async (ISBN, max_tries) => {
     
     }).catch((err) => {
         console.log("here for ", ISBN);
+        console.log(err)
         if (max_tries > 0) {
             return getBookDescription(ISBN, max_tries - 1);
         } else {
