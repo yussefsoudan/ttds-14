@@ -5,7 +5,7 @@ import os
 
 def write_index():
     DB_PASS='thenittygrittyofELnitty'
-    DB_USER='readerTTDS'
+    DB_USER='rootTTDS'
     DB_NAME='TTDS' 
     DB_HOST='188.166.173.191'
     PORT = '27017'
