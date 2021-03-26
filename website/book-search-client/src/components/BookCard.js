@@ -65,27 +65,53 @@ export default function BookCard({resultObj, searchTerms}) {
     }
     let bookDetails = <CardContent style={{"fontStyle" : "italic"}}>
                         <Typography gutterBottom variant="h6" component="h2"  >
-                        ––– Book categories: {book.categories}
+                        Book description
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4"  >
+                        {(book.description == undefined ||  book.description == null || book.description == '') ? 
+                        'No book description available.' : book.description}
                         </Typography>
                         <Typography gutterBottom variant="h6" component="h2"  >
-                        ––– Number of pages: {book.pageCount}
+                        Book categories
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4"  >
+                         {book.categories}
+                        </Typography>
+                        <Typography gutterBottom variant="h6" component="h2"  >
+                        Number of pages 
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4" >
+                        {book.pageCount != "" ? book.pageCount : "No page count is available."}
                         </Typography>
                         <Typography gutterBottom variant="h6" component="h2"   >
-                        ––– Published date: {book.publishedDate}
+                        Published date
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4"    >
+                        {book.publishedDate != "" ? book.publishedDate : "No publication date is available."}
                         </Typography>
                         <Typography gutterBottom variant="h6" component="h2"   >
-                        ––– ISBN: {book['isbn-13']}
+                        ISBN
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4"   >
+                        {book['isbn-13']}
                         </Typography>
                         <Typography gutterBottom variant="h6" component="h2"   >
-                        ––– Average rating: <Stars
-                                          stars={book.averageRating}
-                                          size={15} //optional
-                                          spacing={2} //optional
-                                          fill='#ea9c46' //optional
-                                          />
+                        Average rating
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4"   >
+                          {book.averageRating != "" ?
+                        <Stars
+                        stars={book.averageRating}
+                        size={20} //optional
+                        spacing={2} //optional
+                        fill='#ea9c46' //optional
+                        /> : "No ratings were given to this book."}
                         </Typography>
                         <Typography gutterBottom variant="h6" component="h2"   >
-                        ––– Number of ratings: {book.ratingsCount}
+                        Number of ratings
+                        </Typography>
+                        <Typography gutterBottom variant="h7" component="h4"    >
+                        {book.ratingsCount != "" ? book.ratingsCount : "No ratings were given to this book."}
                         </Typography>
                       </CardContent>
       let displayedQuote = bookDetails 
