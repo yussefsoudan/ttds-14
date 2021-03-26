@@ -13,7 +13,12 @@ import gc
 def build_book_index(): # each term will have 200 docs max
     stopSet = set(stopwords.words('english'))
     stemmer = PorterStemmer()
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    DB_PASS='thenittygrittyofELnitty'
+    DB_USER='readerTTDS'
+    DB_NAME='TTDS' 
+    DB_HOST='188.166.173.191'
+    PORT = '27017'
+    client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
     db = client["TTDS"]
     booksCollec = db["books"]
     loadSize = 1000
