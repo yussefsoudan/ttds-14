@@ -1,15 +1,11 @@
 import os.path
 import json
-import pickle
 import sys
-# from db.DB import get_db_instance
 from MongoDB import MongoDB 
 from pathlib import Path
 import math
 import time
 import pymongo
-# from ir_eval.utils.score_tracker import ScoreTracker, NaiveScoreTracker
-# from ir_eval.ranking.phrase_search import phrase_search
 from collections import defaultdict
 import pprint
 from collections import Counter
@@ -35,61 +31,81 @@ def populate_terms_count_dictionary():
 # term : {doc_id : score}
 # Documents could either be books or quotes in this function
 # Find all documents that are common among all search terms given
-def get_common_documents(scored_docs_per_term):
+def get_common_documents(scored_docs_per_term,greedy_approach=False):
     common_docs = set()
+    tfidf_scores = {}
     scored_docs = {}
-    for i, (term,doc_scores) in enumerate(scored_docs_per_term.items()):
-        if i ==0:
-            common_docs = set(doc_scores.keys())
+    # print("scored_docs_per_term", scored_docs_per_term)
+
+    terms = scored_docs_per_term.keys()
+    num_terms = len(terms)
+    print("Terms for common docs",terms)
+
+    # While our term list is not empty
+    while(len(terms)):
+        # Iterate the books for the selected terms 
+        for i,term in enumerate(terms):
+            doc_scores = scored_docs_per_term[term]
+            print(f"Term {term} has {len(doc_scores)} books")
+            if i ==0:
+                common_docs = set(doc_scores.keys())
+                # print(f"Common docs for term {term} are currently {len(common_docs)} ")
+                tfidf_scores[term] = Counter(doc_scores).most_common(1)[0][1]
+                print(f"Highest tfidf score for term {term} is {tfidf_scores[term]}")
+            else:
+                # Get the intersection of all quote_id or book_id between the terms of the query
+                common_docs = common_docs.intersection(set(doc_scores.keys()))
+                # print(f"Common docs for term {term}  are currently {len(common_docs)} ")
+                tfidf_scores[term] = Counter(doc_scores).most_common(1)[0][1]
+                print(f"Highest tfidf score for term {term} is {tfidf_scores[term]}")
+
+
+        if len(common_docs) == 0:
+            print("No common docs")
+            # used for quote search, when common documents among ALL search terms must be returned 
+            if not greedy_approach:
+                return {}
+            terms = [term for term,score in Counter(tfidf_scores).most_common()]
+            print("Terms sorted",str(terms))
+            lowest_tfidf_term = terms.pop()
+            del tfidf_scores[lowest_tfidf_term]
+            print("Terms after removing last",str(terms))
         else:
-            # Get the intersection of all quote_id or book_id between the terms of the query
-            common_docs = common_docs.intersection(set(doc_scores.keys()))
-
-    print("Common docs",common_docs)
-    for term, doc_scores in scored_docs_per_term.items():
-        for doc_id, score in doc_scores.items():
-            if doc_id in common_docs:
-                scored_docs[doc_id] = score if doc_id not in scored_docs else scored_docs[doc_id] + score
+            print("Common docs",len(common_docs))
+            for term, doc_scores in scored_docs_per_term.items():
+                for doc_id, score in doc_scores.items():
+                    if doc_id in common_docs:
+                        scored_docs[doc_id] = score if doc_id not in scored_docs else scored_docs[doc_id] + score
 
 
-    print("scored quotes",scored_docs)
-    return scored_docs
+            print("scored quotes",len(scored_docs))
+            return scored_docs
+
+
+    # common_docs = set()
+    # scored_docs = {}
+    # for i, (term,doc_scores) in enumerate(scored_docs_per_term.items()):
+    #     if i ==0:
+    #         common_docs = set(doc_scores.keys())
+    #     else:
+    #         # Get the intersection of all quote_id or book_id between the terms of the query
+    #         common_docs = common_docs.intersection(set(doc_scores.keys()))
+
+    # print("Common docs",common_docs)
+    # for term, doc_scores in scored_docs_per_term.items():
+    #     for doc_id, score in doc_scores.items():
+    #         if doc_id in common_docs:
+    #             scored_docs[doc_id] = score if doc_id not in scored_docs else scored_docs[doc_id] + score
+
+
+    # print("scored quotes",scored_docs)
+    # return scored_docs
 
 # ------------------- Book search and ranking --------------------------
 # -----------------------------------------------------------------------
 
 TOTAL_NUMBER_OF_BOOKS = 30630 
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
-
-
-# # Dictionary containing for each book, the total number of terms 
-# # TO-DO: Write script to iterate over books and create a pickle file
-# # containing their term count
-# books_total_term_counts = defaultdict(lambda: 1)
-# pickle_path = Path(__file__).parent.absolute() / "utils" / 'books_term_counts.p'
-# print(pickle_path)
-
-# if os.path.isfile(pickle_path):
-#     books_total_term_counts = defaultdict(lambda: 1, pickle.load(open(pickle_path, 'rb')))
-#     TOTAL_NUMBER_OF_BOOKS = len(books_total_term_counts)
-# else:
-#     print("no pickle file for books term counts found")
-
-# pprint.pprint(books_total_term_counts)
-
-
-# def get_total_term_count(book_id):
-#     # Technically this should return only one document back
-#     book_doc = next(db.books.find({"_id": book_id}))
-#     terms_count = book_doc["terms_count"]
-#     return (terms_count if terms_count != 0 else 1000)
-    # for book_doc in book_docs:
-        
-    #     if terms_count ==0:
-    #         print(f"Term counts for book {book_id} is {terms_count}")
-    #         return 1000
-    #     return terms_count
-
 
 
 # This function is responsible for taking a dictionary of the form
@@ -215,8 +231,9 @@ def book_ranking_query_TFIDF(query_params):
         if time.time() - start_time > MAX_QUERY_TIME:
             break
     
-    scored_books = get_scaled_common_documents(scored_books_per_term)
-    
+    # scored_books = get_scaled_common_documents(scored_books_per_term)
+    scored_books = get_common_documents(scored_books_per_term,greedy_approach=True)
+
     return Counter(scored_books).most_common(100)
 
 
@@ -230,7 +247,7 @@ MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
 
-
+class TimeLimitorMaxQuotesError(Exception): pass
 
 # def get_common_documents(scored_quotes_per_term):
 #     common_quotes = set()
@@ -280,7 +297,8 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                 # returns cursor object
                 # will return objects with id:term
                 term_docs = db.get_docs_by_term(term, i, batch_size)
-
+                if time.time() - term_start_time > MAX_TERM_TIME:
+                    raise TimeLimitorMaxQuotesError()
                 process_start = time.time()
 
                 for term_doc in term_docs:
@@ -318,10 +336,12 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                                 else:
                                     scored_quotes_per_term[term][quote_id] = score
                                 # scored_quotes[quote_id] = score
-                            if time.time() - total_start_time > MAX_QUERY_TIME or len(scored_quotes_per_term[term].keys()) > 2000: # Brings time for hello from 7s to 0.3s
+                            if  len(scored_quotes_per_term[term].keys()) > 2000: # Brings time for hello from 7s to 0.3s
+                                raise   TimeLimitorMaxQuotesError()
+                            if time.time() - total_start_time > MAX_QUERY_TIME:
                                 scored_quotes = get_common_documents(scored_quotes_per_term)
                                 return Counter(scored_quotes).most_common(100)
-        except:
+        except TimeLimitorMaxQuotesError:
             pass
     
     scored_quotes = get_common_documents(scored_quotes_per_term)
