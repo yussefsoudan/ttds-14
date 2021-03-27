@@ -22,7 +22,8 @@ books_term_count = Counter()
 
 def get_common_documents(scored_docs_per_term,greedy_approach=False):
     """  
-    This function is responsible for taking a dictionary of the form
+    Helper function
+    Responsible for taking a dictionary of the form
     {term : {doc_id : score}}
     Documents could either be book titles or quotes in this function
     Find all documents that are common among all search terms given
@@ -166,53 +167,45 @@ def book_search_TFIDF(query_params):
 # ------------------- Quote search and ranking --------------------------
 # -----------------------------------------------------------------------
 
-MAX_INDEX_SPLITS = 200  # maximum number of different entries in the inverted_index with the same term
-TOTAL_NUMBER_OF_SENTENCES = 4099986 
-MAX_TERM_QUOTES = 2000
-MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
-MAX_TERM_TIME = 4
+MAX_INDEX_ENTRIES_PER_TERM = 200  # maximum number of different entries in the inverted_index with the same term
+TOTAL_QUOTES = 4099986  # total number of quotes in collection 
+MAX_RETRIEVE_QUOTES_PER_TERM = 4000 # max quote documents retrieved per term 
+MAX_QUOTE_SEARCH_TIME = 10  # max seconds to allow the query to run for
 batch_size = 20
 
-class TimeLimitorMaxQuotesError(Exception): pass
 
-# def get_common_documents(scored_quotes_per_term):
-#     common_quotes = set()
-#     scored_quotes = {}
-#     for i, (term,quote_scores) in enumerate(scored_quotes_per_term.items()):
-#         if i ==0:
-#             common_quotes = set(quote_scores.keys())
-#         else:
-#             # Get the intersection of all quote_ids between the terms of the query
-#             common_quotes = common_quotes.intersection(set(quote_scores.keys()))
+""" 
+Helper error class 
+"""
+class MaxQuotesError(Exception): pass
 
-#     print("COmmon quotes",common_quotes)
-#     for term, quote_scores in scored_quotes_per_term.items():
-#         for quote_id, score in quote_scores.items():
-#             if quote_id in common_quotes:
-#                 scored_quotes[quote_id] = score if quote_id not in scored_quotes else scored_quotes[quote_id] + score
+def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
+    """ Source for BM25: https://en.wikipedia.org/wiki/Okapi_BM25 """
+    K =  k1 * ((1-b) + b * (float(dl)/float(avgdl)) )
+    idf_param = math.log( (doc_nums-doc_nums_term+0.5) / (doc_nums_term+0.5) )
+    next_param = ((k1 + 1) * term_freq) / (K + term_freq)
+    return float("{0:.4f}".format(next_param * idf_param))
 
+def quote_search_BM25(query_params, batch_size=batch_size):
 
-#     print("scored quotes",scored_quotes)
-#     return scored_quotes
-
-
-def ranked_quote_retrieval(query): # , number_results, search_phrase=False
-    tracker = ranking_query_BM25(query, batch_size)
-    return tracker # result_ids
-
-def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
-
+    """ 
+    Function responsbile for quote search 
+    Uses the BM25 score to rank quote as our quote documents are esentially paragraphs
+    Search terms are used to match quotes, and only quotes that contain all the terms are returned
+    """
+    
     scored_quotes_per_term = {} # term -> {q_id:score}
     terms = query_params['query']
     relevant_books = None
 
+    # Filtering 
     if any([query_params['author'], query_params['bookTitle'], (query_params['genre'] != 'All' and query_params['genre'] != ''),
             int(query_params['min_rating']) > 1, int(query_params['yearTo']) != 2021, int(query_params['yearFrom']) != 1990]):
         relevant_books = db.get_filtered_books_by_adv_search(query_params)
     
     print("Quote search terms",terms)
 
-    doc_nums = TOTAL_NUMBER_OF_SENTENCES
+    doc_nums = TOTAL_QUOTES
     total_start_time = time.time()
     for term in terms:
         scored_quotes_per_term[term] = {}
@@ -220,11 +213,9 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
         term_start_time = time.time()
         try:
             # iterate documents of this term by batches
-            for i in range(0, MAX_INDEX_SPLITS, batch_size):
+            for i in range(0, MAX_INDEX_ENTRIES_PER_TERM, batch_size):
                 print("Index batch=",i)
                 term_docs = db.get_docs_by_term(term, i, batch_size)
-                if time.time() - term_start_time > MAX_TERM_TIME:
-                    raise TimeLimitorMaxQuotesError()
 
                 process_start = time.time()
 
@@ -235,31 +226,38 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
                     doc_nums_term = term_doc['term_freq'] 
 
                     book_loop_time = time.time()
-                    for b,book in enumerate(term_doc['books']):
+                    for book in term_doc['books']:
                         if relevant_books is not None and book['_id'] not in relevant_books:
                             continue
-                        for q,quote in enumerate(book['quotes']):
+                        for quote in book['quotes']:
                             # how many times the term appears in the quote
                             term_freq = len(quote['pos'])
                             # document length, how many terms appear overall in this quote
                             dl = quote['len']
                             quote_id = quote['_id']
 
-                            score = score_BM25(doc_nums, doc_nums_term, term_freq, k1=1.2, b=0.75, dl=dl, avgdl=4.82) if dl < 100000 else 0
+                            # k 1 and b are free parameters, usually chosen, in absence of an advanced optimization, 
+                            # as k 1 ∈ [ 1.2 , 2.0 ] and b = 0.75
+                            # Wikipedia
+                            score = score_BM25(doc_nums, doc_nums_term, term_freq, k1=1.2, b=0.75, dl=dl, avgdl=4.82)
+                            
                             if score > 0:
                                 if quote_id in scored_quotes_per_term[term]:
                                     scored_quotes_per_term[term][quote_id] += score
                                 else:
                                     scored_quotes_per_term[term][quote_id] = score
+
                             # If we have retrieve MAX_TERM_QUOTES, move on to next term
-                            if  len(scored_quotes_per_term[term].keys()) > MAX_TERM_QUOTES: # Brings time for hello from 7s to 0.3s
-                                raise   TimeLimitorMaxQuotesError()
+                            if  len(scored_quotes_per_term[term].keys()) > MAX_RETRIEVE_QUOTES_PER_TERM: # Brings time for hello from 7s to 0.3s
+                                print("MAX_RETRIEVE_QUOTES_PER_TERM has been reached")
+                                raise   MaxQuotesError()
                             
-                            if time.time() - total_start_time > MAX_QUERY_TIME:
+                            if time.time() - total_start_time > MAX_QUOTE_SEARCH_TIME:
+                                print("MAX_QUOTE_SEARCH_TIME has been reached")
                                 scored_quotes = get_common_documents(scored_quotes_per_term)
                                 return Counter(scored_quotes).most_common(100)
         
-        except TimeLimitorMaxQuotesError:
+        except MaxQuotesError:
             pass
     
     scored_quotes = get_common_documents(scored_quotes_per_term,greedy_approach=False)
@@ -267,12 +265,6 @@ def ranking_query_BM25(query_params, batch_size=MAX_INDEX_SPLITS):
     return Counter(scored_quotes).most_common(100)
 
 
-def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
-    """ Source for BM25: https://en.wikipedia.org/wiki/Okapi_BM25 """
-    K =  k1 * ((1-b) + b * (float(dl)/float(avgdl)) )
-    idf_param = math.log( (doc_nums-doc_nums_term+0.5) / (doc_nums_term+0.5) )
-    next_param = ((k1 + 1) * term_freq) / (K + term_freq)
-    return float("{0:.4f}".format(next_param * idf_param))
 
 
 # ------------------- Phrase search and ranking --------------------------

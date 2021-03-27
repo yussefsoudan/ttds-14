@@ -114,8 +114,7 @@ def get_books_from_terms():
     print('-'*50)
     return result
 
-# this tries out ranked_quote_retrieval function from ranking.py
-# In this function, both simple quote search and phrase search will be handled
+# This function handle both quote and phrase search 
 @app.route('/quotes_search', methods=['POST'])
 def get_quotes_from_terms(): 
     print("request in get_quotes_from_terms is {}".format(request.get_json()))
@@ -130,6 +129,7 @@ def get_quotes_from_terms():
 
     preprocessed_terms = preprocess(details["quote"])
     print("preprocessed terms",preprocessed_terms)
+
     if phrase_search:
         all_terms = preprocess(details['quote'], remove_stop_words=False)
         print(all_terms)
@@ -137,13 +137,13 @@ def get_quotes_from_terms():
         for term in all_terms:
             pos_of_term = [i for i, split in enumerate(all_terms) if term in split]
             phrase_terms.append((term, pos_of_term))
-            #phrase_terms.append((term, all_terms.index(term))) # assumes term only appears once in the query
+
         ranked_quote_ids = quote_phrase_search({"query": phrase_terms, "all_terms" : all_terms}) # phrase search returns set(quote_ids)
     else:
         q_r_time = time.time()
-        ranked_quotes = ranked_quote_retrieval({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
+        ranked_quotes = quote_search_BM25({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
                                             "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
-                                           'min_rating': details['minRating']}) # ranked_quote_search returns list: [(quote_id, score)]
+                                           'min_rating': details['minRating']}) 
         print()
         # print("ranked quotes: {}".format(ranked_quotes))
         print("time taken for ranked_quote_retrieval: {}".format(time.time() - q_r_time))
@@ -152,28 +152,27 @@ def get_quotes_from_terms():
 
     quotes = db.get_quotes_by_quote_id_list(ranked_quote_ids)
     
+    # Traverse cursor
     quotes_results = []
-    for i, dic_quote in enumerate(quotes):
-        dic_quote['quote_id'] = dic_quote.pop('_id')
-        quotes_results.append(dic_quote)
+    for quote in quotes:
+        quote['quote_id'] = quote.pop('_id')
+        quotes_results.append(quote)
     
     # Get book Details for book_ids
-    book_ids = ([dic['book_id'] for dic in quotes_results])
+    book_ids = [quote['book_id'] for quote in quotes_results]
     books = db.get_books_by_book_id_list(book_ids)
     books_results = []
-    for dic_book in books:
-        if dic_book is not None and 'book_id' not in dic_book:
-            dic_book['book_id'] = dic_book.pop('_id')
-            books_results.append(dic_book)
+    for book in books:
+        if book is not None and 'book_id' not in book: # in case different quotes shared the same book
+            book['book_id'] = book.pop('_id')
+            books_results.append(book)
 
     # Merge book Details with Quotes
     # Appending the book details to the quotes object
     query_results = merge_dict_lists(quotes_results, books_results, 'book_id')
 
-
     result = {"books": query_results,"searchTerms":preprocessed_terms}
 
-    # print("returning {} from get_quotes_from_terms".format(result))
     return result
 
 def test_ranking_method():
