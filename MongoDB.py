@@ -21,14 +21,6 @@ class MongoDB:
         self.book_inverted_index = db["bookInvertedIndex"]
         print("COUNT DOCS")
         print(db["invertedIndex"].count())
-        # self.quotes.create_index('_id')
-
-        # self.inverted_index = self.ttds.inverted_index
-        # self.movies = self.ttds.movies
-        # self.sentences.create_index('_id')
-        # self.inverted_index.create_index('_id')
-        # self.movies.create_index('_id')
-        # self.inverted_index_gridfs = gridfs.GridFS(self.ttds)
 
     def get_quote_from_id(self, id: str):
         # Given a quote id, return the quote object
@@ -38,7 +30,7 @@ class MongoDB:
 
     def get_titles_by_book_id_list(self, book_ids: List[str]):
         books = self.books.find({"_id": {"$in": book_ids}})
-        book_titles = [book["title"] for book in books] # if return more than titles, modify this
+        book_titles = [book["title"] for book in books] 
         return book_titles
 
     def get_books_by_book_id_list(self, book_ids: List[str]):
@@ -63,12 +55,6 @@ class MongoDB:
     
     def get_books_by_term(self, term: str):
         return self.book_inverted_index.find({"term": term})
-
-        # return self.inverted_index.aggregate([
-        #     { "$project": { "books": { "$objectToArray": "$books" } } },
-        #     { "$project": { "books.v.quotes": 0} }, 
-        #     { "$project": { "books": { "$arrayToObject": "$books" } } }, 
-        #     { "$match": {"term": term } } ])
 
     def get_filtered_books_by_adv_search(self, query):
         adv_options = {}
