@@ -30,7 +30,7 @@ def build_index(): # each term will have 200 docs max
     iterations = 0
     files_counter = 0
     
-    for r in range(0, 57000):
+    for r in range(0, 41000):
         iterations += 1
         lowerLimit = r * loadSize
         upperLimit = lowerLimit + loadSize
@@ -54,8 +54,8 @@ def build_index(): # each term will have 200 docs max
                 currIndexPortion[term]['books'][b_id]['term_freq_in_book'] += 1
                 currIndexPortion[term]['books'][b_id]['quotes'].append({'_id' : q_id, 'len' : len(re.findall(r'\w+', q['quote'])), 'pos': pos})
 
-        # Write current batch to disk once every 284 iterations
-        if iterations == 284:
+        # Write current batch to disk once every 205 iterations: will output 200 portions of the index
+        if iterations == 205:
             iterations = 0
             for value in currIndexPortion.values():
                 value['books'] = list(value['books'].values())

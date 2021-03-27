@@ -18,7 +18,7 @@ let buildIndex = async () => {
         let dict = {}
 
         // Load quotes in 1,000 at a time
-        for (let r = 0; r < 57000; r++) {
+        for (let r = 0; r < 41000; r++) {
             let lowerLimit = r * loadSize;
             let upperLimit = lowerLimit + loadSize;
             let quotes = await quotesCollec.find({"_id" : {"$lt" : upperLimit, "$gte" : lowerLimit}}).toArray();
