@@ -137,8 +137,12 @@ def get_quotes_from_terms():
         for term in all_terms:
             pos_of_term = [i for i, split in enumerate(all_terms) if term in split]
             phrase_terms.append((term, pos_of_term))
-
+ 
+        start_time = time.time()
         ranked_quote_ids = quote_phrase_search({"query": phrase_terms, "all_terms" : all_terms}) # phrase search returns set(quote_ids)
+        end_time = time.time()
+        print("time taken to return {} results".format(len(ranked_quote_ids)), end_time - start_time)
+    
     else:
         q_r_time = time.time()
         ranked_quotes = quote_search_BM25({"query": preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
@@ -175,20 +179,5 @@ def get_quotes_from_terms():
 
     return result
 
-def test_ranking_method():
-    start = time.time()
-    details = {"quote": 'wind and rain', "author": "", 'bookTitle': '', 'genre': "", 'minRating': 1, "yearFrom": '1998', "yearTo": '2020'}
-    # examples: wind and rain, yanked the duct tape off, watched it melt, pick up the phone
-    preprocessed_terms = preprocess(details['quote'])
-    all_terms = preprocess(details['quote'], remove_stop_words=False)
-    phrase_terms = []
-    for term in preprocessed_terms:
-        phrase_terms.append((term, all_terms.index(term))) 
-    print("phrase terms: {}".format(phrase_terms))
-    tracker = phrase_search({'query': phrase_terms, "all_terms": all_terms})
-    print(tracker)
-    print("time taken: {}".format(time.time() - start))
-
 if __name__ == '__main__':    
-    test_ranking_method() # UNCOMMENT TO TEST PHRASE SEARCH
     app.run(debug=True, port=5000)
