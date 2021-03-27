@@ -139,7 +139,7 @@ export default function BookCard({resultObj, searchTerms, searchQuote}) {
                             <q cite="https://www.mozilla.org/en-US/about/history/details/">{
                           <Highlighter
                           highlightClassName="YourHighlightClass"
-                          searchWords={searchQuote.includes("\"") ? [searchQuote.replaceAll("\"", "").replaceAll(",", "").replaceAll(";", "")] : searchTerms}
+                          searchWords={searchQuote.includes("\"") ? [searchQuote.replaceAll("\"", "").replaceAll(",", "").replaceAll(";", "").strip()] : searchTerms}
                           autoEscape={true}
                           textToHighlight={quote}
                         >
@@ -150,7 +150,7 @@ export default function BookCard({resultObj, searchTerms, searchQuote}) {
         displayedQuote = <q cite="https://www.mozilla.org/en-US/about/history/details/">{
                           <Highlighter
                           highlightClassName="YourHighlightClass"
-                          searchWords={searchQuote.includes("\"") ? [searchQuote.replaceAll("\"", "").replaceAll(",", "").replaceAll(";", "")] : searchTerms}
+                          searchWords={searchQuote.includes("\"") ? [searchQuote.replaceAll("\"", "").replaceAll(",", "").replaceAll(";", "").strip()] : searchTerms}
                           autoEscape={true}
                           textToHighlight={quote}
                         >
