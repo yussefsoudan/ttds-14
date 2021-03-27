@@ -1,10 +1,7 @@
 import React, {useState,useEffect} from 'react';
-import AppBar from '@material-ui/core/AppBar';
-import BookIcon from '@material-ui/icons/Book';
 import Grid from '@material-ui/core/Grid';
 
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
@@ -39,12 +36,6 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-let dummy_authors = [{name:"Janish"}
-,{name:"Harry poppins"},
-{name:"Anna michin"},
-{name:"Mike"},
-{name:"Joah noah"},
-{name:"Michelin"}]
 
 export default function SearchPage() {
   const classes = useStyles();
@@ -161,14 +152,6 @@ type of search
   return (
     <React.Fragment>
       <CssBaseline />
-      {/* <AppBar position="relative">
-        <Toolbar>
-          <BookIcon className={classes.icon} />
-          <Typography variant="h6" color="inherit" noWrap>
-            Book Search Engine
-          </Typography>
-        </Toolbar>
-      </AppBar> */}
       <main>
         {/* Search bar including the Advance search options */}
         <SearchBar handleRequest={handleRequest}  authors={state.authors} book_titles={state.book_titles} />
@@ -194,17 +177,6 @@ type of search
           {state.errorOccur && <Typography variant="h6" align='center' color='error' className="error-message">{`Your request has timed out. The error message is: ${state.errorMsg}`}</Typography> }
         </Container>
       </main>
-
-      {/* Footer */}
-      {/* <footer className={classes.footer}>
-        <Typography variant="h6" align="center" gutterBottom>
-          Footer
-        </Typography>
-        <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
-          Something here to give the footer a purpose!
-        </Typography>
-      </footer> */}
-      {/* End footer */}
     </React.Fragment>
   );
 }

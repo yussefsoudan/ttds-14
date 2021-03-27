@@ -78,13 +78,8 @@ export default function SearchBar(props) {
 
     
     const handleSubmit = () =>{
-        // Validate input 
-        // If input is correct then make the request otherwise change state
-        // and display appropriate component
-        // findQuoteRequest();
-
+        // Potential to validate input here if needed
         props.handleRequest(state)
-        
     }
 
     
