@@ -49,21 +49,35 @@ export default function ResultPage({results, searchTerms, searchQuote}) {
 
         const handleSort = (key,value) => {
           console.log("Sort")
+          let order = key.split("-")[1]
+          let actualKey = key.split("-")[0]
           var arr = state.data
-          arr = sortByKey(arr,key)
+          if (order == "ASC") {
+            arr = sortByKeyASC(arr,actualKey)
+          } else {
+            arr = sortByKeyDSC(arr,actualKey)
+          }
 
           // arr = sortByKey(arr,"averageRating")
           setState({...state,sort:value,data:arr,sorting:false})
           console.log("Sorted results",state.data)
         }
 
-        const sortByKey = (array, key) => {
+        const sortByKeyASC = (array, key) => {
+          return array.sort(function(a, b) {
+              var x = a[key]; 
+              var y = b[key];
+              return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+          });
+        }
+
+        const sortByKeyDSC = (array, key) => {
           return array.sort(function(a, b) {
               var x = a[key]; 
               var y = b[key];
               return ((x < y) ? 1 : ((x > y) ? -1 : 0));
           });
-      }
+        }
 
         // Calculate how many pagination page we will have 
         var length = Object.keys(state.data).length;
@@ -108,9 +122,14 @@ export default function ResultPage({results, searchTerms, searchQuote}) {
                         id="sort-select"
                         onChange={e => handleSort(e.target.value,true)}
                       >
-                        <MenuItem value={"title"}>Book title</MenuItem>
-                        <MenuItem value={"averageRating"}>Average Rating</MenuItem>
-                        <MenuItem value={"pageCount"}>Page count</MenuItem>
+                        <MenuItem value={"title-ASC"}>Book title: A-Z</MenuItem>
+                        <MenuItem value={"title-DSC"}>Book title: Z-A</MenuItem>
+                        <MenuItem value={"averageRating-DSC"}>Average rating: High-to-Low</MenuItem>
+                        <MenuItem value={"averageRating-ASC"}>Average rating: Low-to-High</MenuItem>
+                        <MenuItem value={"pageCount-DSC"}>Page count: High-to-Low</MenuItem>
+                        <MenuItem value={"pageCount-ASC"}>Page count: Low-to-High</MenuItem>
+                        <MenuItem value={"ratingsCount-DSC"}>Number of ratings: High-to-Low</MenuItem>
+                        <MenuItem value={"ratingsCount-ASC"}>Number of ratings: Low-to-High</MenuItem>
                       </Select>
                   </FormControl>
                 </Grid>
