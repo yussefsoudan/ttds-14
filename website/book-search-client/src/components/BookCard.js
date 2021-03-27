@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function BookCard({resultObj, searchTerms}) {
+export default function BookCard({resultObj, searchTerms, searchQuote}) {
     const classes = useStyles();
     const [expanded, setExpanded] = React.useState(false);
 
@@ -139,7 +139,7 @@ export default function BookCard({resultObj, searchTerms}) {
                             <q cite="https://www.mozilla.org/en-US/about/history/details/">{
                           <Highlighter
                           highlightClassName="YourHighlightClass"
-                          searchWords={searchTerms}
+                          searchWords={searchQuote.includes("\"") ? [searchQuote.replaceAll("\"", "").replaceAll(",", "").replaceAll(";", "")] : searchTerms}
                           autoEscape={true}
                           textToHighlight={quote}
                         >
@@ -150,10 +150,11 @@ export default function BookCard({resultObj, searchTerms}) {
         displayedQuote = <q cite="https://www.mozilla.org/en-US/about/history/details/">{
                           <Highlighter
                           highlightClassName="YourHighlightClass"
-                          searchWords={searchTerms}
+                          searchWords={searchQuote.includes("\"") ? [searchQuote.replaceAll("\"", "").replaceAll(",", "").replaceAll(";", "")] : searchTerms}
                           autoEscape={true}
                           textToHighlight={quote}
-                          >
+                        >
+                          
                           </Highlighter>}</q>
       }
 

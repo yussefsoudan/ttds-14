@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 //  props will be a list of book objects
-export default function ResultPage({results, searchTerms}) {
+export default function ResultPage({results, searchTerms, searchQuote}) {
       const classes = useStyles();
 
       const [state, setState] = useState({
@@ -30,7 +30,8 @@ export default function ResultPage({results, searchTerms}) {
           searchTerms : [],
           offset : 1,
           perPageResults: 10,
-          sort: false
+          sort: false,
+          searchQuote : ""
 
         });
 
@@ -40,7 +41,7 @@ export default function ResultPage({results, searchTerms}) {
         useEffect(() => {
           const onRender = async () => {
             console.log("Use effect hook")
-            setState({...state, data:results, searchTerms : searchTerms}) 
+            setState({...state, data:results, searchTerms : searchTerms, searchQuote : searchQuote}) 
             }
           onRender()
         },[]);
@@ -112,8 +113,8 @@ export default function ResultPage({results, searchTerms}) {
               </Grid>
             </Grid>          */}
 
-            <Grid item xs={2}>
-            <FormControl className={classes.formControl}>
+            <Grid item xs={2} >
+            <FormControl className={classes.formControl} >
                 <InputLabel id="genre">Sort by</InputLabel>
                 <Select
                   labelId="sort-selcet"
@@ -144,7 +145,7 @@ export default function ResultPage({results, searchTerms}) {
               (state.offset-1)*state.perPageResults + Number(state.perPageResults)).filter((book) => {
                   return book.title != null;
               }).map((book,idx) =>
-                  <BookCard  item key={idx} resultObj={book} searchTerms={state.searchTerms} />
+                  <BookCard  item key={idx} resultObj={book} searchTerms={state.searchTerms} searchQuote={state.searchQuote}/>
               )
             }
 

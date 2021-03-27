@@ -14,6 +14,10 @@ from collections import defaultdict
 import pprint
 from collections import Counter
 import re
+import nltk 
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+import gc
 
 
 db = MongoDB()
@@ -220,8 +224,8 @@ def book_ranking_query_TFIDF(query_params):
 # ------------------- Quote search and ranking --------------------------
 # -----------------------------------------------------------------------
 
-MAX_INDEX_SPLITS = 50  # maximum number of different entries in the inverted_index with the same term
-TOTAL_NUMBER_OF_SENTENCES = 50630265  #TODO NEEDS UPDATE
+MAX_INDEX_SPLITS = 200  # maximum number of different entries in the inverted_index with the same term
+TOTAL_NUMBER_OF_SENTENCES = 4099986 
 MAX_QUERY_TIME = 10  # max seconds to allow the query to run for
 MAX_TERM_TIME = 4
 batch_size = 20
@@ -336,8 +340,106 @@ def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
 # ------------------- Phrase search and ranking --------------------------
 # ------------------------------------------------------------------------
 def quote_phrase_search(query):
-    tracker = phrase_search(query)
+    start_time = time.time()
+    tracker = phrase_search_2(query)
+    end_time = time.time()
+    print("time taken to return {} results".format(len(tracker)), end_time - start_time)
     return tracker
+
+def phrase_search_2(query_params):
+    MAX_TO_BE_EXAMINED = 10000
+    start_time = time.time()
+    stopSet = set(stopwords.words('english'))
+    results = list()
+    terms_with_pos = query_params['query'] # tuple (term, [pos])
+    all_terms = query_params['all_terms'] 
+    start_time = time.time()
+    root = ""
+    rootPos = 0
+    distancesDict = dict() # offset --> term we should find
+
+    # Assign root
+    for tup in terms_with_pos:
+        if tup[0] not in stopSet:
+            root = tup[0]
+            rootPos = tup[1][0]
+            break
+
+    # Compute distance offsets of other term occurences to root
+    for tup in terms_with_pos:
+            for idx in tup[1]:
+                offset = idx - rootPos 
+                term = tup[0]
+                distancesDict[offset] = term 
+
+    # Get all invertedIndex docs of the root term
+    rootDocs = list(db.get_docs_by_term(root, 0, 100, sort=True))
+
+    # Get books and quotes containing all non-stop terms
+    booksContainingQuotesContainingAllNonStopWords = set()
+    quotesContainingAllNonStopWords = set()
+    for doc in rootDocs:
+        for book in doc["books"]:
+            for quote in book["quotes"]:
+                booksContainingQuotesContainingAllNonStopWords.add(book["_id"])
+                quotesContainingAllNonStopWords.add(quote["_id"])
+    for tup in terms_with_pos:
+        if tup[0] not in stopSet and tup[0] != root:
+            term = tup[0]
+            termDocs = list(db.get_docs_by_term(term, 0, 100, sort=True))
+            bookSet = set()
+            quoteSet = set()
+            for doc in termDocs:
+                for book in doc["books"]:
+                    for quote in book["quotes"]:
+                        bookSet.add(book["_id"])
+                        quoteSet.add(quote["_id"])
+            booksContainingQuotesContainingAllNonStopWords.intersection(bookSet)
+            quotesContainingAllNonStopWords.intersection(quoteSet)
+            termDocs=list()
+            gc.collect()
+
+    # Make dict of quote id to quote obj for faster retrieval in the next nested loop
+    # Note: we limit the number of quotes to be examined for being a full match to MAX_TO_BE_EXAMINED
+    dictOfQuoteIDToQuoteObj = dict()
+    lengthOfQuotesSet = len(quotesContainingAllNonStopWords) - 1
+    listOfQuoteObjects = db.get_quotes_by_quote_id_list(list(quotesContainingAllNonStopWords)[0:min(MAX_TO_BE_EXAMINED, lengthOfQuotesSet)])
+    print(time.time() - start_time)
+    for QuoteObj in listOfQuoteObjects:
+        dictOfQuoteIDToQuoteObj[QuoteObj["_id"]] = QuoteObj
+    print(time.time() - start_time)
+    listOfQuoteObjects = list()
+    gc.collect()
+
+    quoteIDsOfQuotesContainingPhrase = set()  # i.e the result
+    for doc in rootDocs:
+        for book in doc["books"]:
+            if (book["_id"] not in booksContainingQuotesContainingAllNonStopWords):
+                continue
+            for quoteIndexObj in book["quotes"]:
+                if (quoteIndexObj["_id"] not in quotesContainingAllNonStopWords) or quoteIndexObj["_id"] not in dictOfQuoteIDToQuoteObj:
+                    continue
+                quote = dictOfQuoteIDToQuoteObj[quoteIndexObj["_id"]]
+                regexForPos = re.compile("[\s.,;'\"\(\)\[\]]")
+                termsSplit = regexForPos.split(quote["quote"].lower())
+                foundPhrase = True
+                for idx in quoteIndexObj["pos"]:
+                    for offset in distancesDict.keys():
+                        if (idx + offset >= 0) and (idx + offset < len(termsSplit)) and distancesDict[offset] == termsSplit[idx + offset]:
+                            continue
+                        else:
+                            foundPhrase = False 
+                            break
+                    if foundPhrase == True:
+                        quoteIDsOfQuotesContainingPhrase.add(quoteIndexObj["_id"])
+                        break
+                    else:
+                        foundPhrase = True
+
+    return list(quoteIDsOfQuotesContainingPhrase)
+
+
+        
 
 def phrase_search(query_params): 
     results = set()
@@ -357,13 +459,13 @@ def phrase_search(query_params):
         #     break
         diff = terms_with_pos[i][1] - terms_with_pos[0][1] 
         stop_word_check = True if diff != i else False
-        print("stop_word_check: {}".format(stop_word_check))
-        print("diff considered now: {}".format(diff))
+        #print("stop_word_check: {}".format(stop_word_check))
+        #print("diff considered now: {}".format(diff))
 
         test_time = time.time()
         doc_1 = next(documents_1, None)
         doc_2 = next(documents_2, None)
-        print("time taken for this weird thing: {}".format(time.time() - test_time))
+        #print("time taken for this weird thing: {}".format(time.time() - test_time))
 
         # track the position of each book in the book arrays
         book_pos_1 = 0 
@@ -394,7 +496,7 @@ def phrase_search(query_params):
                         break_doc_loop = True
                         break   
             
-            print("time for book loop: {}".format(time.time() - book_loop_time))
+            #print("time for book loop: {}".format(time.time() - book_loop_time))
             # print("book_1_id is: {}".format(doc_1['books'][book_pos_1]['_id']))
             # print("book_2_id is: {}".format(doc_2['books'][book_pos_2]['_id']))
 
@@ -422,7 +524,7 @@ def phrase_search(query_params):
                                 break_doc_loop = True
                                 break        
                 
-                print("time for quote loop: {}".format(time.time() - quote_loop_time))
+                #print("time for quote loop: {}".format(time.time() - quote_loop_time))
                 # print("quote_1_id is: {}".format(doc_1['books'][book_pos_1]['quotes'][quote_pos_1]['_id']))
                 # print("quote_2_id is: {}".format(doc_2['books'][book_pos_2]['quotes'][quote_pos_2]['_id']))
 
@@ -487,7 +589,7 @@ def phrase_search(query_params):
                                 # break_doc_loop = True
                                 break
                             
-                    print("time spent finding position in quote: {}".format(time.time() - find_pos_time))
+                    #print("time spent finding position in quote: {}".format(time.time() - find_pos_time))
                     
                 else:
                     # if quotes array exceeded -> move to next book in books array -> if books array exceeded
@@ -559,8 +661,8 @@ def phrase_search(query_params):
                         if check:
                             intermediate_set.add(quote_id)
                             break
-            print("time taken for this: {}".format(time.time() - chk_time))
-            print('intermediate set is {}'.format(intermediate_set))
+            #print("time taken for this: {}".format(time.time() - chk_time))
+            #print('intermediate set is {}'.format(intermediate_set))
             if len(intermediate_set) != 0:
                 # print("intermediate is: {}".format(intermediate_set))
                 if len(results) == 0:

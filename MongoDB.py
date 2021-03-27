@@ -33,7 +33,7 @@ class MongoDB:
     def get_quote_from_id(self, id: str):
         # Given a quote id, return the quote object
         quote = self.quotes.find_one({"_id": id})
-        print("Quote returned from db ", quote)
+        #print("Quote returned from db ", quote)
         return quote
 
     def get_titles_by_book_id_list(self, book_ids: List[str]):
@@ -49,6 +49,9 @@ class MongoDB:
     def get_quotes_by_quote_id_list(self, quote_ids: List[str]):
         # need the entire object to retrieve the associated books later
         return self.quotes.find({"_id": {"$in": quote_ids}})
+    
+    def get_docs_by_term_list(self, term_list: List[str]):
+        return self.inverted_index.find({"term" : {"$in" : term_list}}) 
 
     def get_docs_by_term(self, term: str, skip: int, limit: int = 1000, sort: bool = False):
         print("Get documents by term")

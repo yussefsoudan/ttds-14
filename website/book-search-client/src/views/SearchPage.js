@@ -54,6 +54,7 @@ export default function SearchPage() {
       books:[]
     } , 
     searchTerms : [],
+    searchQuote: "",
     isLoading : false,
     errorOccur:false,
     errorMsg:"",
@@ -120,7 +121,7 @@ type of search
       minRating} = searchInput
 
 
-    setState({ ...state, isLoading: true, requestError: "", apiResponse: "" });
+    setState({ ...state, isLoading: true, requestError: "", apiResponse: ""});
     console.log(state.isLoading)
     
     
@@ -139,7 +140,8 @@ type of search
                 requestError: "",
                 success:true,
                 errorOccur: false,
-                searchTerms:response.searchTerms
+                searchTerms: response.searchTerms,
+                searchQuote: quote
             });
         })
         .catch(errorResponse => {
@@ -185,7 +187,7 @@ type of search
           :  ( 
             state.success && (
             (state.apiResponse.books.length>0 )
-            ? ( <ResultPage results={state.apiResponse.books} searchTerms={state.searchTerms} />)
+            ? ( <ResultPage results={state.apiResponse.books} searchTerms={state.searchTerms} searchQuote={state.searchQuote}/>)
             :  ( <Typography variant="h6" align='center' color='primary' className="error-message">{"It seems there were no results for your query."}</Typography> )
            )) // provide list of results
           }
@@ -194,14 +196,14 @@ type of search
       </main>
 
       {/* Footer */}
-      <footer className={classes.footer}>
+      {/* <footer className={classes.footer}>
         <Typography variant="h6" align="center" gutterBottom>
           Footer
         </Typography>
         <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
           Something here to give the footer a purpose!
         </Typography>
-      </footer>
+      </footer> */}
       {/* End footer */}
     </React.Fragment>
   );

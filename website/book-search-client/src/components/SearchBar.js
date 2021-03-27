@@ -92,8 +92,8 @@ export default function SearchBar(props) {
     <>
         <div className={classes.heroContent}>
           <Container maxWidth="sm">
-            <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
-              Search a book by a quote
+            <Typography component="h4" variant="h4" align="center" color="textPrimary" gutterBottom>
+              Search for a book by its title, by a quote or even by a phrase!
             </Typography>
            
            {/* Search Bar */}
@@ -123,7 +123,7 @@ export default function SearchBar(props) {
               <Grid container spacing={2} justify="center">
                 <Grid item>
                   <Button variant="contained" color="primary" onClick={handleSubmit}>
-                    Submit
+                    Search
                   </Button>
                 </Grid>
                 <Grid item>
