@@ -106,8 +106,9 @@ export default function SearchBar(props) {
               {state.correction.length != 0 ? "Did you mean '" + state.correction + "'?": ""}
             </Typography>
 
-            <Typography variant="h5" align="center" color="textSecondary" paragraph value={"hi"}>
-              Try to type something short and leading about the book you are looking for
+            <Typography variant="caption" align="center" color="textSecondary" paragraph value={"hi"}>
+            Tip: For phrase search, the less common your terms the faster your phrase will be retrieved!
+
             </Typography>
 
             {/* Search features component  */}

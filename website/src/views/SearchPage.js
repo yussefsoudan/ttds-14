@@ -174,7 +174,7 @@ type of search
             :  ( <Typography variant="h6" align='center' color='primary' className="error-message">{"It seems there were no results for your query."}</Typography> )
            )) // provide list of results
           }
-          {state.errorOccur && <Typography variant="h6" align='center' color='error' className="error-message">{`Your request has timed out. The error message is: ${state.errorMsg}`}</Typography> }
+          {state.errorOccur && !state.isLoading && <Typography variant="h6" align='center' color='error' className="error-message">{`Your request has timed out. The error message is: ${state.errorMsg}`}</Typography> }
         </Container>
       </main>
     </React.Fragment>
