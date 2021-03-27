@@ -168,7 +168,7 @@ def book_search_TFIDF(query_params):
 # -----------------------------------------------------------------------
 
 MAX_INDEX_ENTRIES_PER_TERM = 200  # maximum number of different entries in the inverted_index with the same term
-TOTAL_QUOTES = 4099986  # total number of quotes in collection 
+TOTAL_QUOTES = 40999867  # total number of quotes in collection 
 MAX_RETRIEVE_QUOTES_PER_TERM = 4000 # max quote documents retrieved per term 
 MAX_QUOTE_SEARCH_TIME = 10  # max seconds to allow the query to run for
 batch_size = 20
