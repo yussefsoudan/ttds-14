@@ -282,7 +282,7 @@ def quote_search_BM25(query_params, batch_size=batch_size):
 # ------------------------------------------------------------------------
 
 def quote_phrase_search(query_params):
-    MAX_TO_BE_EXAMINED = 20000
+    MAX_TO_BE_EXAMINED = 25000
     start_time = time.time()
     stopSet = set(stopwords.words('english'))
     results = list()
@@ -308,7 +308,7 @@ def quote_phrase_search(query_params):
                 distancesDict[offset] = term 
 
     # Get all invertedIndex docs of the root term
-    rootDocs = list(db.get_docs_by_term(root, 0, 50, sort=False))
+    rootDocs = list(db.get_docs_by_term(root, 0, 60))
 
     # Get books and quotes containing all non-stop terms
     booksContainingQuotesContainingAllNonStopWords = set()
@@ -321,7 +321,7 @@ def quote_phrase_search(query_params):
     for tup in terms_with_pos:
         if tup[0] not in stopSet and tup[0] != root:
             term = tup[0]
-            termDocs = db.get_docs_by_term(term, 0, 50, sort=False)
+            termDocs = db.get_docs_by_term(term, 0, 60)
             bookSet = set()
             quoteSet = set()
             for doc in termDocs:

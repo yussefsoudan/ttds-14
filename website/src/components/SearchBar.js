@@ -46,7 +46,7 @@ export default function SearchBar(props) {
     const handleChange = (event) => {
       setState({...state,quote: event.target.value})
       // Spellcheck
-      axios.post('http://127.0.0.1:5000' + '/spellcheck',{
+      axios.post('http://188.166.173.191:5000' + '/spellcheck',{
         search_text: event.target.value
       }).then(res => {
       if (res['data']['correction_exists']) {
@@ -106,7 +106,7 @@ export default function SearchBar(props) {
               {state.correction.length != 0 ? "Did you mean '" + state.correction + "'?": ""}
             </Typography>
 
-            <Typography variant="caption" align="center" color="textSecondary" paragraph value={"hi"}>
+            <Typography variant="caption" align="center" color="textSecondary" paragraph value={"hi"} style={{"fontStyle" : "italic"}}>
             Tip: For phrase search, the less common your terms the faster your phrase will be retrieved!
 
             </Typography>

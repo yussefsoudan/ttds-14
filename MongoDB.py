@@ -1,18 +1,22 @@
 import functools
 import operator
-from os import environ
 from pymongo import MongoClient
 from typing import List
 import urllib.parse
+from dotenv import load_dotenv
+from os.path import join, dirname
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+import os
 
 class MongoDB:
     def __init__(self):
         super().__init__()
-        DB_PASS='thenittygrittyofELnitty'
-        DB_USER='readerTTDS'
-        DB_NAME='TTDS' 
-        DB_HOST='188.166.173.191'
-        PORT = '27017'
+        DB_PASS= os.environ.get("DB_PASS")
+        DB_USER= os.environ.get("DB_USER")
+        DB_NAME= os.environ.get("DB_NAME")
+        DB_HOST= os.environ.get("DB_HOST")
+        PORT = os.environ.get("PORT")
         client = MongoClient(f'mongodb://{DB_USER}:{DB_PASS}@{DB_HOST}:{PORT}') 
         db = client[DB_NAME]
         self.books = db["books"]
@@ -45,12 +49,10 @@ class MongoDB:
     def get_docs_by_term_list(self, term_list: List[str]):
         return self.inverted_index.find({"term" : {"$in" : term_list}}) 
 
-    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000, sort: bool = False):
+    def get_docs_by_term(self, term: str, skip: int, limit: int = 1000):
         print("Get documents by term")
         docs_for_term = self.inverted_index.find({"term": term}, batch_size=100)
         docs_for_term = docs_for_term.skip(skip).limit(limit)  
-        if sort:
-            docs_for_term = docs_for_term.sort('books.0._id')
         return docs_for_term
     
     def get_books_by_term(self, term: str):
