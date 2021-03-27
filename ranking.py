@@ -164,7 +164,7 @@ def book_search_TFIDF(query_params):
 
     scored_books = get_common_documents(scored_books_per_term,greedy_approach=True)
 
-    return Counter(scored_books).most_common(100)
+    return Counter(scored_books).most_common(400)
 
 
 
