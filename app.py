@@ -11,7 +11,6 @@ import nltk
 nltk.download('stopwords')
 from nltk.stem.porter import *
 from spellchecker import SpellChecker
-# from PyDictionary import PyDictionary
 
 app = Flask(__name__, static_url_path = '', static_folder="website/book-search-client/build")
 CORS(app)
@@ -20,7 +19,6 @@ db = MongoDB()
 stopSet = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 spell = SpellChecker()
-# synonym_dict = PyDictionary()
 
 
 def merge_dict_lists(l1,l2,key):
@@ -37,14 +35,6 @@ def preprocess(quote, remove_stop_words=True):
         return [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote)]
     terms = [stemmer.stem(token.lower()) for token in re.findall(r'\w+',quote) if not token.lower() in stopSet]
     return terms
-
-
-def get_synonyms(terms):
-    result = {}
-    for term in terms:
-        synonyms = synonym_dict.synonym(term)
-        result[term] = synonyms
-    return result
 
 
 @app.route('/')
@@ -96,7 +86,6 @@ def get_quote_from_quote_id():
     print("FROM app.py ", result)
     return result
 
-# this tries out ranked_book_search function from ranking.py
 @app.route('/books_search', methods=['POST'])
 def get_books_from_terms():
     print("request in get_books_from_terms is {}".format(request.get_json()))
@@ -104,30 +93,25 @@ def get_books_from_terms():
 
     # Preprocess the quote 
     preprocessed_terms = preprocess(details["quote"])
-    # synonyms = get_synonyms(details["quote"])  # {term:[synonym_list], ...}
     print("preprocessed terms",preprocessed_terms)
 
-    ranked_books = ranked_book_search({"query":preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
+    ranked_books = book_search_TFIDF({"query":preprocessed_terms, "author": details["author"], "bookTitle": details["bookTitle"],
                                        "genre": details["genre"], "yearTo": str(details["yearTo"]), "yearFrom": str(details["yearFrom"]),
-                                       'min_rating': details['minRating']}) # ranked_book_search returns list: [(book_id, score)]
+                                       'min_rating': details['minRating']})
     # print("ranked books: {}".format(ranked_books))
 
-    # if we want book info apart from the book_ids we need to do another search - would this make sense?
+    # Get book information
     ranked_book_ids = [i[0] for i in ranked_books]
     books = db.get_books_by_book_id_list(ranked_book_ids) # returns cursor
 
-    book_results = []
-    for dic_book in books:
-        if dic_book is not None and 'book_id' not in dic_book:  # book_id may already be added if different quotes share the same book!
-            dic_book['book_id'] = dic_book.pop('_id')
-            book_results.append(dic_book)
-    
-    # Responsibility of front end to determine that this object will not contain
-    # quotes and just displaying the requested quote
-    # Add the preprocessed terms for highlight
-    result = {"books": book_results, "searchTerms":preprocessed_terms}
+    # Traverse cursor and store documents to list
+    books_list = []
+    for book in books:
+        book['book_id'] = book.pop('_id')
+        books_list.append(book)
+
+    result = {"books": books_list, "searchTerms":preprocessed_terms}
     print('-'*50)
-    # print("returning {} from get_books_from_terms".format(result))
     return result
 
 # this tries out ranked_quote_retrieval function from ranking.py
