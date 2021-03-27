@@ -356,7 +356,7 @@ def phrase_search_2(query_params):
     start_time = time.time()
     root = ""
     rootPos = 0
-    distancesDict = dict() # offset --> term we should find
+    distancesDict = dict() # offset --> term | e.g. "wind and rain", wind is root and is at 0, so {1: and, 2: rain}
 
     # Assign root
     for tup in terms_with_pos:
