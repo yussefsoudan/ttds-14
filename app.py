@@ -122,9 +122,10 @@ def get_quotes_from_terms():
     
     # quote contains character " twice and they are at the beginning / end of the quote => phrase search is true
     phrase_search = False
-    char_pos = [char.start() for char in re.finditer('"', details['quote'].strip())]
+    strip_quote = details['quote'].strip()
+    char_pos = [char.start() for char in re.finditer('"', strip_quote)]
     if len(char_pos) == 2:
-        if char_pos[0] == 0 and char_pos[1] == len(details['quote']) - 1:
+        if char_pos[0] == 0 and char_pos[1] == len(strip_quote) - 1:
             phrase_search = True
 
     preprocessed_terms = preprocess(details["quote"])
