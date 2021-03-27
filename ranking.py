@@ -177,7 +177,7 @@ batch_size = 20
 """ 
 Helper error class 
 """
-class MaxQuotesError(Exception): pass
+class MaxQuotesOrMaxTimeError(Exception): pass
 
 def score_BM25(doc_nums, doc_nums_term, term_freq, k1, b, dl, avgdl):
     """ Source for BM25: https://en.wikipedia.org/wiki/Okapi_BM25 """
@@ -206,7 +206,6 @@ def quote_search_BM25(query_params, batch_size=batch_size):
     print("Quote search terms",terms)
 
     doc_nums = TOTAL_QUOTES
-    total_start_time = time.time()
     for term in terms:
         scored_quotes_per_term[term] = {}
         print("Term:",term)
@@ -250,14 +249,13 @@ def quote_search_BM25(query_params, batch_size=batch_size):
                             # If we have retrieve MAX_TERM_QUOTES, move on to next term
                             if  len(scored_quotes_per_term[term].keys()) > MAX_RETRIEVE_QUOTES_PER_TERM: # Brings time for hello from 7s to 0.3s
                                 print("MAX_RETRIEVE_QUOTES_PER_TERM has been reached")
-                                raise   MaxQuotesError()
+                                raise MaxQuotesOrMaxTimeError()
                             
-                            if time.time() - total_start_time > MAX_QUOTE_SEARCH_TIME:
+                            if time.time() - term_start_time > MAX_QUOTE_SEARCH_TIME:
                                 print("MAX_QUOTE_SEARCH_TIME has been reached")
-                                scored_quotes = get_common_documents(scored_quotes_per_term)
-                                return Counter(scored_quotes).most_common(100)
+                                raise MaxQuotesOrMaxTimeError()
         
-        except MaxQuotesError:
+        except MaxQuotesOrMaxTimeError:
             pass
     
     scored_quotes = get_common_documents(scored_quotes_per_term,greedy_approach=False)
