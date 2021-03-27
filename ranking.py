@@ -125,6 +125,9 @@ def book_search_TFIDF(query_params):
 
         term_docs = db.get_books_by_term(term) # cursor object
         print("Index entries ",term_docs.count())
+
+        if term_docs.count() == 0:
+            return []
         # Since only one index entry per term
         try:
             term_doc = term_docs.next()
@@ -149,7 +152,7 @@ def book_search_TFIDF(query_params):
                     scored_books_per_term[term][book_id] = score
        
         if len(scored_books_per_term[term].keys()) == 0:
-            print(f"term {term} had 0 books")
+            print(f"term {term} had 0 docs")
             # No need to be considered when finding common docs
             del scored_books_per_term[term]
 
@@ -158,6 +161,7 @@ def book_search_TFIDF(query_params):
             print("Reach max book search time limit")
             break
     
+
     scored_books = get_common_documents(scored_books_per_term,greedy_approach=True)
 
     return Counter(scored_books).most_common(100)
@@ -216,6 +220,11 @@ def quote_search_BM25(query_params, batch_size=batch_size):
                 print("Index batch=",i)
                 term_docs = db.get_docs_by_term(term, i, batch_size)
 
+
+                # If not index entries for that term, move to the next one 
+                if term_docs.count() == 0:
+                    continue
+
                 process_start = time.time()
 
                 for term_doc in term_docs:
@@ -255,6 +264,13 @@ def quote_search_BM25(query_params, batch_size=batch_size):
                                 print("MAX_QUOTE_SEARCH_TIME has been reached")
                                 raise MaxQuotesOrMaxTimeError()
         
+
+
+            if len(scored_quotes_per_term[term].keys()) == 0:
+                print(f"term {term} had 0 quotes")
+                # No need to be considered when finding common docs
+                del scored_quotes_per_term[term]
+
         except MaxQuotesOrMaxTimeError:
             pass
     
