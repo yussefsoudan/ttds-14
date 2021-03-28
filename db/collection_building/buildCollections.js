@@ -106,7 +106,6 @@ let preprocess = async (quote, stopWords) => {
 
 let getBookMetadata = async (ISBN, title, author, max_tries) => {
     let URL = "https://www.googleapis.com/books/v1/volumes?q=isbn";
-    //let APIKey = "&key=AIzaSyDxE-bNMbTHHWaxU9bW78hV3qGPFFW-qZM";
     ISBN = ISBN.replace(/\s|:|-/gi, '');
     let metadata = {'title' : title, 
     'authors' : [author], 
@@ -121,7 +120,7 @@ let getBookMetadata = async (ISBN, title, author, max_tries) => {
     'ratingsCount' : '',
     'terms_count' : ''}; 
 
-    let endpoint = URL + ISBN //+ APIKey;
+    let endpoint = URL + ISBN;
     let accepted_cats = new Set(['fiction','biography & autobiography','juvenile fiction','poetry','young adult fiction',
                      'philosophy','young adult nonfiction','true crime','indic fiction (english)']);
     
